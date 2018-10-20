@@ -1,0 +1,52 @@
+Entities: Interlocking, Train, RadioBlockCenter, Eurobalise, Controller
+Types: MovementAuthority, EndOfAuthority, Track (CoordinateFrom, CoordinateTo, rbc, set of eb)
+
+Controller
++ Run() - this sends random route requests to Interlocking every 500ms
++ AcknowledgeRouteRequest() : bool
+
+Interlocking:
+- Control table
+- TrackOccupied(map track to bool)
+- RoutesAvaliable : set of Route
+- RouteSet
+- PointsLocked
++ RequestToProceed(Route) : bool (If route set, lock route, send proceed granted to RBC)
++ RouteRequest(Route): void
++ TrackOccupied(Track) - from Eurobalise
+
+
+Train
+- Position
+- Speed (0 and maxspeed)
+- MaxSpeed
+- MovementAuthorities : seq of MovementAuthority
+- currentTrack : Track
+- running : bool
+- rbc: RadioBlockControl
+- eb: Eurobalise
++ UpdateTrack(call rb, get track)
++ StopTrain() (speed:=0, running=false)
+
+
+Route:
+- set of Track
+
+
+RadioBlockCenter
+- eurobaliseesCoverered (set of Eurobalise)
+- availableRoutes (set of routes) - from interlocking
+- designatedRoutes (set of routes) - from trains
+- occupiedRoutes(set of routes) - from interlocking
++ RequestMovementAuthoriy() : MovementAuthority
+
+
+Eurobalise (trackside)
+- BlockSection (Track1, Track2)
++ GetTrackPosition(set of Track)
++ Movement() - Track (from train)
++ SetTracks() - void (from interlocking)
+
+
+
+
