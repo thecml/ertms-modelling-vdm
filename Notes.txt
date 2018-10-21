@@ -18,6 +18,7 @@ R2: A train shall not pass a track boundary without being given a movement autho
 R3: Distance between two trains must always be over a certain threshold.
 R4: Two trains cannot have a MA for the same track at the same time.
 R5: When a train has traversed half the track, it shall request a MA for the next track.
+R6: A RBC shall not answer MA's for tracks it is not responsible for.
 
 Scenario:
 

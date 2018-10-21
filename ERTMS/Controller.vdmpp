@@ -1,0 +1,23 @@
+class Controller
+types
+-- TODO Define types here
+instance variables
+	private interlocking : Interlocking;
+	
+operations
+	public Run:() ==> ()
+	Run() ==
+		is not yet specified;
+		
+	private MakeRouteRequest:() ==> ()
+	MakeRouteRequest() ==
+		is not yet specified;
+		
+	public Controller : Interlocking ==> Controller
+	Controller(itl) ==
+		interlocking := itl;
+	
+functions
+-- TODO Define functiones here
+
+end Controller

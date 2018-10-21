@@ -1,0 +1,84 @@
+class Interlocking
+
+types
+	public ProceedMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public Route = set of Track;
+	public Track :: coordFrom : nat
+									coordTo : nat
+									description : seq of char
+									permittedSpeed : nat;
+								
+instance variables
+	private trackOccupied : map Track to bool;
+	private avaliableRoutes : set of Route;
+	private radioBlockCenters : map Route to RadioBlockCenter;
+	
+	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
+	inv forall rt in set avaliableRoutes & not InvIsTrackOccupied(rt,trackOccupied)
+	
+operations
+	public RequestToProceed: Route ==> ProceedMessage
+	RequestToProceed(rt) ==
+		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
+			-- grant proceed by returning true
+		-- else return false
+		if rt in set avaliableRoutes
+		then (
+			avaliableRoutes := avaliableRoutes \ {rt};
+			return <PROCEED_GRANTED>
+		)
+		else return <PROCEED_DENIED>
+	pre card rt > 0;
+
+	public RequestRoute: (Route) ==> ()
+	RequestRoute(rt) ==
+		-- if route is not in routesAvaliable and the tracks are not occupied already,
+		-- then add it to routesAvaliable and inform RBC.
+		-- else do nothing
+		if (rt not in set avaliableRoutes and forall tr in set rt & trackOccupied(tr) = false)
+		then (
+		avaliableRoutes := avaliableRoutes union {rt};
+		radioBlockCenters(rt).SetRouteAsAvailable(rt)
+		);
+
+	public SetTrackState: Track * Eurobalise`TrainState ==> ()
+		SetTrackState(tr, sta) ==
+		-- set specific track as occupied if train enters.
+		-- if train leaves, clear track and inform RBC.
+			if(sta = <TRAIN_ENTER>)
+			then trackOccupied(tr) := true
+			else if (sta = <TRAIN_LEAVE>)
+			then ( trackOccupied := trackOccupied ++ {tr|->false};
+			radioBlockCenters({tr}).SetRouteAsAvailable({tr});
+			);
+			
+	public GetAvaliableRoutes: () ==> set of Route
+	GetAvaliableRoutes() ==
+		--return all avaliable routes
+		return avaliableRoutes;
+		
+	public Interlocking: set of Route * seq of RadioBlockCenter ==> Interlocking
+	Interlocking(rts, rbcs) ==
+		(
+			avaliableRoutes := rts;
+			for rbc in rbcs
+			do (
+					dcl trs : set of Interlocking`Track := rbc.GetResponsibleTracks();
+					radioBlockCenters := radioBlockCenters munion {trs|->rbc};
+			);
+			trackOccupied :=  {let tr in set i in tr |-> false | i in set rts}
+		);
+
+functions
+	public InvNoDuplicateTrack: set of Route -> bool
+	InvNoDuplicateTrack(rts) ==
+		let rt in set rts
+		in
+			forall x,y in set rt & x <> y => x.coordFrom <> y.coordFrom;
+			
+	private InvIsTrackOccupied: Route * map Track to bool -> bool
+	InvIsTrackOccupied(rt,trmap) ==
+		forall i in set rt & trmap(i) <> false
+		pre card rt > 0;
+		
+end Interlocking

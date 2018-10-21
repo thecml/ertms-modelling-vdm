@@ -1,0 +1,79 @@
+class RadioBlockCenter
+types
+	public MovementAuthorityMessage = <MovementAuthorityGranted> | <MovementAuthorityDenied>;
+
+instance variables
+	private eurobalises : set of Eurobalise;
+	private responsibleTracks : set of Interlocking`Track;
+	private availableRoutes : set of Interlocking`Route; -- from interlocking
+	private designatedRoutes : set of Interlocking`Route; -- from trains
+	private trackOccupied : map Interlocking`Track to bool; -- from interlocking
+	private movementAuthorites : map nat to seq of Interlocking`Track;
+	private interlocking  : Interlocking;
+	
+	inv card availableRoutes < 2 or Interlocking`InvNoDuplicateTrack(availableRoutes);
+
+operations
+	public Step: () ==> ()
+	Step() ==
+		is not yet specified;
+
+	public RequestMovementAuthority: (Interlocking`Track) ==> MovementAuthorityMessage -- from train
+	RequestMovementAuthority(tr) ==
+	-- check if this RBC is responsible for this request
+		-- check if the track is in the set of tracks in available routes and not in the set of occupied routes
+			-- if so, ask interlocking for request to proceed for that track
+					-- if granted, create a set with track and add it to designatedRoutes,
+					-- lock it in designatedRoutes and reply to train with MovementAuthorityGranted
+			--return MovementAuthorityDenied
+		-- return MovementAuthorityDenied 
+		is not yet specified;
+		
+	public SetRouteAsAvailable: Interlocking`Route ==> ()
+	SetRouteAsAvailable(rt) ==
+		let track in set rt
+		in (
+			trackOccupied(track) := false;
+			availableRoutes := availableRoutes union {{track}}
+		);
+	
+	public GetResponsibleTracks: () ==> set of Interlocking`Track
+	GetResponsibleTracks() ==
+		return responsibleTracks;
+	
+	public RadioBlockCenter : set of Eurobalise * set of Interlocking`Route
+	 * set of Interlocking`Track * Interlocking
+	  ==> RadioBlockCenter
+	RadioBlockCenter(eb,rts,trs,itl) ==
+	(
+		eurobalises := eb;
+		availableRoutes := rts;
+		responsibleTracks := trs;
+		interlocking := itl;
+		designatedRoutes := {};
+		trackOccupied := {|->};
+		movementAuthorites := {|->};
+	);
+		
+functions
+	private IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track -> bool
+	IsTrackInSetOfTracks(tr,trs) ==
+		tr in set trs;
+
+	private IsTrackInRoute: Interlocking`Track * Interlocking`Route -> bool
+	IsTrackInRoute(tr, rt) ==
+		let track in set rt
+		in
+			track.coordFrom = tr.coordFrom and track.coordTo = tr.coordTo
+		pre card rt > 0;
+
+	private IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
+	IsTrackOccupied(tr,routemap) ==
+		routemap(tr) = false
+		pre tr in set dom routemap;
+	
+	private GetOccupiedTracks: map Interlocking`Track to bool -> set of Interlocking`Track
+	GetOccupiedTracks(trmap) ==
+		{tr | tr in set dom trmap & trmap(tr) = false}
+		
+end RadioBlockCenter
