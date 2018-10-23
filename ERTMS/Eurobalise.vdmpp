@@ -1,0 +1,7 @@
+class Eurobalise
+operations
+	protected Enter: () ==> ()
+	Enter() == is subclass responsibility;
+	protected Leave: () ==> ()
+	Leave() == is subclass responsibility;
+end Eurobalise

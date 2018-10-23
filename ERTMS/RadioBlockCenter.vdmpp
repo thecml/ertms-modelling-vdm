@@ -44,7 +44,7 @@ operations
 	 * set of Track * Interlocking
 	  ==> RadioBlockCenter
 	RadioBlockCenter(rts,trs,itl) ==
-	(
+	atomic (
 		availableRoutes := rts;
 		responsibleTracks := trs;
 		interlocking := itl;

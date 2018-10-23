@@ -5,12 +5,13 @@ types
 	public Route = set of Track;
 								
 instance variables
-	private trackOccupied : map Track to bool;
-	private avaliableRoutes : set of Route;
+	private trackOccupied : map Track to bool; -- physical occupied track
+	private avaliableRoutes : set of Route; -- routes not planned to be occupied
 	private radioBlockCenters : map Route to RadioBlockCenter;
 	
 	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
-	inv forall rt in set avaliableRoutes & not InvIsTrackOccupied(rt,trackOccupied)
+	inv forall rt in set avaliableRoutes & not InvIsTrackOccupied(rt,trackOccupied);
+	inv card avaliableRoutes = card dom trackOccupied;
 	
 operations
 	public RequestToProceed: Route ==> ProceedMessage
@@ -18,7 +19,7 @@ operations
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		if rt in set avaliableRoutes
+		if rt in set avaliableRoutes and let tr in set rt in trackOccupied(tr) = false
 		then (
 			avaliableRoutes := avaliableRoutes \ {rt};
 			return <PROCEED_GRANTED>
@@ -55,14 +56,10 @@ operations
 		
 	public Interlocking: set of Route * seq of RadioBlockCenter ==> Interlocking
 	Interlocking(rts, rbcs) ==
-		(
+		 atomic (
 			avaliableRoutes := rts;
-			for rbc in rbcs
-			do (
-					dcl trs : set of Track := rbc.GetResponsibleTracks();
-					radioBlockCenters := radioBlockCenters munion {trs|->rbc};
-			);
-			trackOccupied :=  {let tr in set i in tr |-> false | i in set rts}
+			trackOccupied :=  {let tr in set i in tr |-> false | i in set rts};
+			radioBlockCenters := {rbc.GetResponsibleTracks() |-> rbc | rbc in seq rbcs}
 		);
 
 functions

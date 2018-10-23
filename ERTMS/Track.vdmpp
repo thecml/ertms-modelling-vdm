@@ -1,4 +1,4 @@
-class Track
+class Track is subclass of Eurobalise
 types
 	public TrainState = <TRAIN_ENTER> | <TRAIN_LEAVE>;
 	
@@ -7,18 +7,28 @@ instance variables
 	public toCoord : Point;
 	private interlocking : Interlocking;
 	private description : seq of char;
-	private permittedSpeed : nat;
+	private permittedSpeed : nat1;
 	
 operations
-	public EnterTrack : () ==> ()
-	EnterTrack() ==
+	public Enter: () ==> ()
+	Enter() ==
+		-- notify interlocking train has entered the track
 		interlocking.SetTrackState(self, <TRAIN_ENTER>);
 		
-	public LeaveTrack : () ==> ()
-	LeaveTrack() ==
+	public Leave: () ==> ()
+	Leave() ==
+	  -- notify interlocking ttrain has left the track
 		interlocking.SetTrackState(self, <TRAIN_LEAVE>);
+		
+	public GetDescription: () ==> seq of char
+	GetDescription() ==
+		return description;
+	
+	GetPermittedSpeed: () ==> nat1
+	GetPermittedSpeed() ==
+		return permittedSpeed;
 
-	public Track : Point * Point * Interlocking * seq of char * nat ==> Track
+	public Track : Point * Point * Interlocking * seq of char * nat1 ==> Track
 	Track(pFromCoord, pToCoord, itl, desp, ps) ==
 	(
 		fromCoord := pFromCoord;
@@ -29,5 +39,5 @@ operations
 	);
 	
 functions
-		
+
 end Track
