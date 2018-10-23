@@ -3,10 +3,6 @@ class Interlocking
 types
 	public ProceedMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
 	public Route = set of Track;
-	public Track :: coordFrom : nat
-									coordTo : nat
-									description : seq of char
-									permittedSpeed : nat;
 								
 instance variables
 	private trackOccupied : map Track to bool;
@@ -41,7 +37,7 @@ operations
 		radioBlockCenters(rt).SetRouteAsAvailable(rt)
 		);
 
-	public SetTrackState: Track * Eurobalise`TrainState ==> ()
+	public SetTrackState: Track * Track`TrainState ==> ()
 		SetTrackState(tr, sta) ==
 		-- set specific track as occupied if train enters.
 		-- if train leaves, clear track and inform RBC.
@@ -63,7 +59,7 @@ operations
 			avaliableRoutes := rts;
 			for rbc in rbcs
 			do (
-					dcl trs : set of Interlocking`Track := rbc.GetResponsibleTracks();
+					dcl trs : set of Track := rbc.GetResponsibleTracks();
 					radioBlockCenters := radioBlockCenters munion {trs|->rbc};
 			);
 			trackOccupied :=  {let tr in set i in tr |-> false | i in set rts}
@@ -74,7 +70,8 @@ functions
 	InvNoDuplicateTrack(rts) ==
 		let rt in set rts
 		in
-			forall x,y in set rt & x <> y => x.coordFrom <> y.coordFrom;
+			forall a,b in set rt & a <> b => a.fromCoord.x <> b.fromCoord.x or a.fromCoord.y <> b.fromCoord.y
+			or a.toCoord.x <> b.toCoord.x or a.toCoord.y <> b.toCoord.y;
 			
 	private InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==

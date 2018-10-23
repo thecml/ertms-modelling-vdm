@@ -17,7 +17,7 @@ operations
 	Step() ==
 		is not yet specified;
 		
-	public UpdateTrack: () ==> Interlocking`Track
+	public UpdateTrack: () ==> Track
 	UpdateTrack() ==
 		is not yet specified;
 		
