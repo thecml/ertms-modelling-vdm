@@ -1,7 +1,40 @@
 class Eurobalise
+types
+	public TrainState = <TRAIN_ENTER> | <TRAIN_LEAVE>;
+	
+instance variables
+	private interlocking : Interlocking;
+	private description : seq of char;
+	private permittedSpeed : nat1;
+	
 operations
-	protected Enter: () ==> ()
-	Enter() == is subclass responsibility;
-	protected Leave: () ==> ()
-	Leave() == is subclass responsibility;
+	public Enter: () ==> ()
+	Enter() ==
+		-- notify interlocking that train has entered track
+		--interlocking.SetTrackState(self, <TRAIN_ENTER>);
+		is not yet specified;
+		
+	public Leave: () ==> ()
+	Leave() ==
+	  -- notify interlocking that train has left track
+		--interlocking.SetTrackState(self, <TRAIN_LEAVE>);
+		is not yet specified;
+			
+	public GetDescription: () ==> seq of char
+	GetDescription() ==
+		return description;
+	
+	GetPermittedSpeed: () ==> nat1
+	GetPermittedSpeed() ==
+		return permittedSpeed;
+
+	public Eurobalise : Interlocking * seq of char * nat1 ==> Eurobalise
+	Eurobalise(itl, desp, ps) ==
+	(
+		interlocking := itl;
+		description := desp;
+		permittedSpeed := ps;
+	);
+	
+functions
 end Eurobalise
