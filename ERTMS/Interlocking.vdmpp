@@ -3,13 +3,15 @@ class Interlocking
 types
 	public ProceedMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
 	public Route = set of Track;
-								
+	public RouteRequest :: rbc : RadioBlockCenter
+												 rt : Route;
+												
 instance variables
-	private trackOccupied : map Track to bool; -- physical occupied track
+	private trackOccupied : map Track to bool; -- physically occupied track
 	private avaliableRoutes : set of Route; -- routes not planned to be occupied
 	private radioBlockCenters : map Route to RadioBlockCenter;
 	
-	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
+	inv card avaliableRoutes < 2 or forall rt in set avaliableRoutes & InvNoDuplicateTrack(rt);
 	inv forall rt in set avaliableRoutes & not InvIsTrackOccupied(rt,trackOccupied);
 	inv card avaliableRoutes = card dom trackOccupied;
 	
@@ -19,12 +21,16 @@ operations
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		if rt in set avaliableRoutes and let tr in set rt in trackOccupied(tr) = false
-		then (
-			avaliableRoutes := avaliableRoutes \ {rt};
-			return <PROCEED_GRANTED>
-		)
-		else return <PROCEED_DENIED>
+		let pt in set {x.GetCoords() | x in set rt}
+		in
+			let trs in set {y | y in set avaliableRoutes}
+			in
+				let pt2 in set {z.GetCoords() | z in set trs}
+				in
+					if(pt2 = pt) then (
+						avaliableRoutes := avaliableRoutes \ {rt};
+						return <PROCEED_GRANTED> )
+			else return <PROCEED_DENIED>
 	pre card rt > 0;
 
 	public RequestRoute: (Route) ==> ()
@@ -34,8 +40,8 @@ operations
 		-- else do nothing
 		if (rt not in set avaliableRoutes and forall tr in set rt & trackOccupied(tr) = false)
 		then (
-		avaliableRoutes := avaliableRoutes union {rt};
-		radioBlockCenters(rt).SetRouteAsAvailable(rt)
+			avaliableRoutes := avaliableRoutes union {rt};
+			radioBlockCenters(rt).SetRouteAsAvailable(rt)
 		);
 
 	public SetTrackState: Track * Track`TrainState ==> ()
@@ -63,13 +69,11 @@ operations
 		);
 
 functions
-	public InvNoDuplicateTrack: set of Route -> bool
-	InvNoDuplicateTrack(rts) ==
-		let rt in set rts
-		in
-			forall a,b in set rt & a <> b => a.fromCoord.x <> b.fromCoord.x or a.fromCoord.y <> b.fromCoord.y
-			or a.toCoord.x <> b.toCoord.x or a.toCoord.y <> b.toCoord.y;
-			
+	public InvNoDuplicateTrack: Route -> bool
+	InvNoDuplicateTrack(rt) ==
+		forall tr1, tr2 in set rt & tr1 <> tr2 => tr1.fromCoord <> tr2.fromCoord
+			or tr1.toCoord <> tr2.toCoord;
+				
 	private InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==
 		forall i in set rt & trmap(i) <> false

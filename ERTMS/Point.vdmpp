@@ -1,12 +1,19 @@
 class Point
+
 instance variables
-	public x: nat;
-	public y: nat;
+	private x : nat;
+	private y : nat;
+	
 operations
-	public Point : nat * nat ==> Point
-	Point(px,py) ==
-		(
-			x := px;
-			y := py;
-		);
+	public GetCoord:() ==> nat * nat
+	GetCoord() ==
+		return mk_(x,y);
+	
+	public Point: nat * nat ==> Point
+	Point(px, py) ==
+	(
+		x := px;
+		y := py;
+	);
+		
 end Point
