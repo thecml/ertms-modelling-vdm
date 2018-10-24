@@ -1,23 +1,23 @@
 class Train
-types
--- TODO Define types here
 instance variables
-	private id: nat;
-	private position : nat;
-	private route: Interlocking`Route;
+	private startX : nat;
+	private startY : nat;
+	private destX : nat;
+	private destY : nat;
+	private route: seq of Interlocking`Track;
 	private radioBlockCenter : RadioBlockCenter;
 	private speed : nat;
 	private maxSpeed : nat;
 	private isRunning : bool;
 	
-	inv speed <> 0 and speed <= maxSpeed and isRunning = true;
+	--inv speed <> 0 and speed <= maxSpeed and isRunning = true;
 	
 operations
-	public Step: () ==> ()
-	Step() ==
+	public Run: () ==> ()
+	Run() ==
 		is not yet specified;
 		
-	public UpdateTrack: () ==> Track
+	public UpdateTrack: () ==> Interlocking`Track
 	UpdateTrack() ==
 		is not yet specified;
 		
@@ -32,19 +32,18 @@ operations
 	Accelerate(amount) ==
 		if isRunning then speed := speed + amount else speed := 0; 
 		
-	public Train: nat * nat * Interlocking`Route *
-	 RadioBlockCenter * bool ==> Train
-	 Train(ident,pos,rn,rbc,running) ==
-	 (
-	 	id := ident;
-	 	position := pos;
+	public Train: seq of Interlocking`Track * RadioBlockCenter * bool ==> Train
+	 Train(rn,rbc,running) ==
+	 atomic (
+	 	startX := (hd rn).startX;
+	 	startY := (hd rn).startY;
+	 	destX := rn(len rn).endX;
+	 	destY := rn(len rn).endY;
+	 	maxSpeed := (hd rn).maxSpeed;
 	  route := rn;
 	  radioBlockCenter := rbc;
 	  isRunning := running;
 	  speed := 0;
-	 	maxSpeed := 0;
 	 );
-			
 functions
--- TODO Define functiones here
 end Train

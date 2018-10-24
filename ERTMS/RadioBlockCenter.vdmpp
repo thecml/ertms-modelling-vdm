@@ -3,45 +3,41 @@ types
 	public MovementAuthorityMessage = <MovementAuthorityGranted> | <MovementAuthorityDenied>;
 
 instance variables
-	private responsibleTracks : set of Track;
+	private responsibleTracks : set of Interlocking`Track;
 	private availableRoutes : set of Interlocking`Route; -- from interlocking
 	private designatedRoutes : set of Interlocking`Route; -- from trains
-	private trackOccupied : map Track to bool; -- from interlocking
-	private movementAuthorites : map nat to seq of Track;
+	private busyTracks : map Interlocking`Track to bool; -- from interlocking
+	private movementAuthorites : map nat to seq of Interlocking`Track;
 	private interlocking  : Interlocking;
 	
-	inv card availableRoutes < 2 or Interlocking`InvNoDuplicateTrack(availableRoutes);
+	inv card availableRoutes < 2 or forall rt in set availableRoutes
+		& Interlocking`InvNoDuplicateTrack(rt);
 
 operations
-	public Step: () ==> ()
-	Step() ==
-		is not yet specified;
-
-	public RequestMovementAuthority: (Track) ==> MovementAuthorityMessage -- from train
+	public RequestMovementAuthority: (Interlocking`Track) ==> MovementAuthorityMessage -- from train
 	RequestMovementAuthority(tr) ==
-	-- check if this RBC is responsible for this request
-		-- check if the track is in the set of tracks in available routes and not in the set of occupied routes
-			-- if so, ask interlocking for request to proceed for that track
-					-- if granted, create a set with track and add it to designatedRoutes,
-					-- lock it in designatedRoutes and reply to train with MovementAuthorityGranted
-			--return MovementAuthorityDenied
-		-- return MovementAuthorityDenied 
-		is not yet specified;
-		
+		if(tr in set responsibleTracks and {tr} in set availableRoutes and busyTracks(tr) = false)
+		then (
+			if (interlocking.RequestToProceed({tr}) = <PROCEED_GRANTED>)
+			then (
+				designatedRoutes := designatedRoutes union {{tr}};
+				return <MovementAuthorityGranted>;
+			) else return <MovementAuthorityDenied>;
+		) else return <MovementAuthorityDenied>;
+	
 	public SetRouteAsAvailable: Interlocking`Route ==> ()
 	SetRouteAsAvailable(rt) ==
 		let track in set rt
 		in (
-			trackOccupied(track) := false;
+			busyTracks(track) := false;
 			availableRoutes := availableRoutes union {{track}}
 		);
 	
-	public GetResponsibleTracks: () ==> set of Track
+	public GetResponsibleTracks: () ==> set of Interlocking`Track
 	GetResponsibleTracks() ==
 		return responsibleTracks;
 	
-	public RadioBlockCenter : set of Interlocking`Route
-	 * set of Track * Interlocking
+	public RadioBlockCenter : set of Interlocking`Route  * set of Interlocking`Track * Interlocking
 	  ==> RadioBlockCenter
 	RadioBlockCenter(rts,trs,itl) ==
 	atomic (
@@ -49,30 +45,27 @@ operations
 		responsibleTracks := trs;
 		interlocking := itl;
 		designatedRoutes := {};
-		trackOccupied := {|->};
+		busyTracks := {|->};
 		movementAuthorites := {|->};
 	);
 		
 functions
-	private IsTrackInSetOfTracks: Track * set of Track -> bool
+	private IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track -> bool
 	IsTrackInSetOfTracks(tr,trs) ==
 		tr in set trs;
 
-	private IsTrackInRoute: Track * Interlocking`Route -> bool
+	private IsTrackInRoute: Interlocking`Track * Interlocking`Route -> bool
 	IsTrackInRoute(tr, rt) ==
-			forall rtt in set rt & tr <> rtt => tr.fromCoord.x <> rtt.fromCoord.x
-				or tr.fromCoord.y <> rtt.fromCoord.y
-				or tr.toCoord.x <> rtt.toCoord.x
-				or tr.toCoord.y <> rtt.toCoord.y
+			forall rtt in set rt & tr = rtt
 		pre card rt > 0;
 
-	private IsTrackOccupied: Track * map Track to bool -> bool
+	private IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
 	IsTrackOccupied(tr,routemap) ==
 		routemap(tr) = false
 		pre tr in set dom routemap;
 	
-	private GetOccupiedTracks: map Track to bool -> set of Track
-	GetOccupiedTracks(trmap) ==
+	private GetBusyTracks: map Interlocking`Track to bool -> set of Interlocking`Track
+	GetBusyTracks(trmap) ==
 		{tr | tr in set dom trmap & trmap(tr) = false}
 		
 end RadioBlockCenter

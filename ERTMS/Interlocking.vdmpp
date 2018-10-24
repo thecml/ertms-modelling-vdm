@@ -2,15 +2,22 @@ class Interlocking
 
 types
 	public ProceedMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public Track :: startX : nat
+									startY : nat
+									endX : nat
+									endY : nat
+									description : seq of char
+									maxSpeed : nat;
 	public Route = set of Track;
-								
+	public RouteRequest :: rbc : RadioBlockCenter
+												 rt : Route;
+												
 instance variables
-	private trackOccupied : map Track to bool; -- physical occupied track
+	private trackOccupied : map Track to bool; -- physically occupied track
 	private avaliableRoutes : set of Route; -- routes not planned to be occupied
 	private radioBlockCenters : map Route to RadioBlockCenter;
 	
-	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
-	inv forall rt in set avaliableRoutes & not InvIsTrackOccupied(rt,trackOccupied);
+	inv card avaliableRoutes < 2 or forall rt in set avaliableRoutes & InvNoDuplicateTrack(rt);
 	inv card avaliableRoutes = card dom trackOccupied;
 	
 operations
@@ -19,26 +26,21 @@ operations
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		if rt in set avaliableRoutes and let tr in set rt in trackOccupied(tr) = false
-		then (
-			avaliableRoutes := avaliableRoutes \ {rt};
-			return <PROCEED_GRANTED>
-		)
-		else return <PROCEED_DENIED>
+		is not yet specified
 	pre card rt > 0;
 
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied already,
 		-- then add it to routesAvaliable and inform RBC.
-		-- else do nothing
+		-- else do nothing				
 		if (rt not in set avaliableRoutes and forall tr in set rt & trackOccupied(tr) = false)
-		then (
-		avaliableRoutes := avaliableRoutes union {rt};
-		radioBlockCenters(rt).SetRouteAsAvailable(rt)
+		then (		
+			avaliableRoutes := avaliableRoutes union {rt};
+			radioBlockCenters(rt).SetRouteAsAvailable(rt)
 		);
 
-	public SetTrackState: Track * Track`TrainState ==> ()
+	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
 		-- set specific track as occupied if train enters.
 		-- if train leaves, clear track and inform RBC.
@@ -63,13 +65,10 @@ operations
 		);
 
 functions
-	public InvNoDuplicateTrack: set of Route -> bool
-	InvNoDuplicateTrack(rts) ==
-		let rt in set rts
-		in
-			forall a,b in set rt & a <> b => a.fromCoord.x <> b.fromCoord.x or a.fromCoord.y <> b.fromCoord.y
-			or a.toCoord.x <> b.toCoord.x or a.toCoord.y <> b.toCoord.y;
-			
+	public InvNoDuplicateTrack: Route -> bool
+	InvNoDuplicateTrack(rt) ==
+		forall tr1, tr2 in set rt & tr1 <> tr2 => tr1 <> tr2;
+				
 	private InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==
 		forall i in set rt & trmap(i) <> false

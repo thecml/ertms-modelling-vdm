@@ -3,20 +3,24 @@ types
 -- TODO Define types here
 instance variables
 	private interlocking : Interlocking;
+	private routes : seq of Interlocking`Route;
 	
 operations
 	public Run:() ==> ()
 	Run() ==
-		is not yet specified;
+		SendRouteRequest();
 		
-	private MakeRouteRequest:() ==> ()
-	MakeRouteRequest() ==
-		is not yet specified;
+	private SendRouteRequest:() ==> ()
+	SendRouteRequest() ==
+		-- send a random selected route into the Interlocking as a route request.
+		(dcl rn : nat := MATH`rand(len routes);
+				interlocking.RequestRoute(routes(rn));
+		);
 		
-	public Controller : Interlocking ==> Controller
-	Controller(itl) ==
+	public Controller : Interlocking * seq of Interlocking`Route ==> Controller
+	Controller(itl, rts) ==
+	(
 		interlocking := itl;
-	
-functions
-
+		routes := rts;
+	);
 end Controller
