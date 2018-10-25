@@ -1,21 +1,29 @@
-class Train
+class Train	
 instance variables
 	private startX : nat;
 	private startY : nat;
 	private destX : nat;
 	private destY : nat;
-	private route: seq of Interlocking`Track;
+	private tracksInTotal: nat;
+	private currentTrack : nat;
+	private route : map nat to Interlocking`Track;
+	private transponders : map Interlocking`Track to Eurobalise;
 	private radioBlockCenter : RadioBlockCenter;
-	private speed : nat;
 	private maxSpeed : nat;
-	private isRunning : bool;
+	private speed : nat := 0;
+	private running : bool := false;
 	
-	--inv speed <> 0 and speed <= maxSpeed and isRunning = true;
+	inv speed > 0 and running = true or speed = 0 and running = false;
+	inv speed <= maxSpeed;
 	
 operations
 	public Run: () ==> ()
 	Run() ==
 		is not yet specified;
+		
+	public Start: () ==> ()
+	Start() ==
+		running := true;
 		
 	public UpdateTrack: () ==> Interlocking`Track
 	UpdateTrack() ==
@@ -25,25 +33,27 @@ operations
 	Stop() ==
 	(
 		speed := 0;
-		isRunning := false
+		running := false;
 	);
 		
-	private Accelerate: (nat1) ==> ()
+	private Accelerate: (nat1) ==> ()	
 	Accelerate(amount) ==
-		if isRunning then speed := speed + amount else speed := 0; 
+		if running then speed := speed + amount else speed := 0; 
 		
-	public Train: seq of Interlocking`Track * RadioBlockCenter * bool ==> Train
-	 Train(rn,rbc,running) ==
-	 atomic (
-	 	startX := (hd rn).startX;
-	 	startY := (hd rn).startY;
-	 	destX := rn(len rn).endX;
-	 	destY := rn(len rn).endY;
-	 	maxSpeed := (hd rn).maxSpeed;
-	  route := rn;
-	  radioBlockCenter := rbc;
-	  isRunning := running;
-	  speed := 0;
+	public Train: map nat to Interlocking`Track
+	 * map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
+	 Train(rt,trans,rbc) ==
+	 (
+	 	startX := rt(1).startX;
+	 	startY := rt(1).startY;
+	 	destX := rt(1).endX;
+	 	destY := rt(1).endY;
+	 	currentTrack := 1;
+	 	tracksInTotal := card dom rt;
+	 	route := rt;
+	 	transponders := trans;
+	 	radioBlockCenter := rbc;
+	 	maxSpeed := rt(1).maxSpeed;
 	 );
 functions
 end Train

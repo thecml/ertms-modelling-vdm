@@ -16,7 +16,9 @@ instance variables
 operations
 	public RequestMovementAuthority: (Interlocking`Track) ==> MovementAuthorityMessage -- from train
 	RequestMovementAuthority(tr) ==
-		if(tr in set responsibleTracks and {tr} in set availableRoutes and busyTracks(tr) = false)
+		if(tr in set responsibleTracks
+		 and {tr} in set availableRoutes
+		  and busyTracks(tr) = false)
 		then (
 			if (interlocking.RequestToProceed({tr}) = <PROCEED_GRANTED>)
 			then (
@@ -37,7 +39,8 @@ operations
 	GetResponsibleTracks() ==
 		return responsibleTracks;
 	
-	public RadioBlockCenter : set of Interlocking`Route  * set of Interlocking`Track * Interlocking
+	public RadioBlockCenter : set of Interlocking`Route  * set of Interlocking`Track
+	 * Interlocking
 	  ==> RadioBlockCenter
 	RadioBlockCenter(rts,trs,itl) ==
 	atomic (
