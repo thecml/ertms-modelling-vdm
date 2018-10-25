@@ -6,13 +6,15 @@ instance variables
 	private destY : nat;
 	private tracksInTotal: nat;
 	private currentTrack : nat;
-	private route : map nat to Interlocking`Track;
+	private route : inmap nat to Interlocking`Track;
 	private transponders : map Interlocking`Track to Eurobalise;
 	private radioBlockCenter : RadioBlockCenter;
 	private maxSpeed : nat;
 	private speed : nat := 0;
 	private running : bool := false;
 	
+	inv forall x in set {0, ..., card dom route-1}
+	 & InvTrackIsConnected(route(x),route(x+1));
 	inv speed > 0 and running = true or speed = 0 and running = false;
 	inv speed <= maxSpeed;
 	
@@ -56,4 +58,7 @@ operations
 	 	maxSpeed := rt(1).maxSpeed;
 	 );
 functions
+	private InvTrackIsConnected: Interlocking`Track * Interlocking`Track -> bool
+	InvTrackIsConnected(tr1, tr2) ==
+		tr1.endX = tr2.startX and tr1.endY = tr2.startY;
 end Train
