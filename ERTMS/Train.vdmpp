@@ -45,7 +45,7 @@ operations
 	public Train: map nat to Interlocking`Track
 	 * map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
 	 Train(rt,trans,rbc) ==
-	 (
+	 atomic (
 	 	startX := rt(1).startX;
 	 	startY := rt(1).startY;
 	 	destX := rt(1).endX;
@@ -58,7 +58,8 @@ operations
 	 	maxSpeed := rt(1).maxSpeed;
 	 );
 functions
-	private InvTrackIsConnected: Interlocking`Track * Interlocking`Track -> bool
+	public InvTrackIsConnected: Interlocking`Track * Interlocking`Track -> bool
 	InvTrackIsConnected(tr1, tr2) ==
 		tr1.endX = tr2.startX and tr1.endY = tr2.startY;
+		
 end Train

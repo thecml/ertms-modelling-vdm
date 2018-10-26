@@ -19,8 +19,9 @@ operations
 		
 	public Controller : Interlocking * seq of Interlocking`Route ==> Controller
 	Controller(itl, rts) ==
-	(
+	atomic (
 		interlocking := itl;
 		routes := rts;
 	);
+	
 end Controller

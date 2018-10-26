@@ -4,36 +4,27 @@ types
 	
 instance variables
 	private interlocking : Interlocking;
-	private description : seq of char;
-	private permittedSpeed : nat1;
+	private track: Interlocking`Track;
 	
 operations
 	public Enter: () ==> ()
 	Enter() ==
 		-- notify interlocking that train has entered track
-		--interlocking.SetTrackState(self, <TRAIN_ENTER>);
-		is not yet specified;
+		-- and return permitted speed for the track
+		(
+			interlocking.SetTrackState(track, <TRAIN_ENTER>);
+		);
 		
 	public Leave: () ==> ()
 	Leave() ==
 	  -- notify interlocking that train has left track
-		--interlocking.SetTrackState(self, <TRAIN_LEAVE>);
-		is not yet specified;
+		interlocking.SetTrackState(track, <TRAIN_LEAVE>);
 			
-	public GetDescription: () ==> seq of char
-	GetDescription() ==
-		return description;
-	
-	GetPermittedSpeed: () ==> nat1
-	GetPermittedSpeed() ==
-		return permittedSpeed;
-
-	public Eurobalise : Interlocking * seq of char * nat1 ==> Eurobalise
-	Eurobalise(itl, desp, ps) ==
-	(
+	public Eurobalise : Interlocking * Interlocking`Track ==> Eurobalise
+	Eurobalise(itl, tr) ==
+	atomic (
 		interlocking := itl;
-		description := desp;
-		permittedSpeed := ps;
+		track := tr;
 	);
 	
 functions
