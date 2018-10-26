@@ -1,0 +1,30 @@
+class SetMasterTest is subclass of TestCase
+types
+-- TODO Define types here
+values
+-- TODO Define values here
+instance variables
+	private uut: SetMaster;
+	
+operations
+	public SetMasterTest: () ==> SetMasterTest
+	SetMasterTest() ==
+		(
+			skip;
+		);
+		
+	public setUp: () ==> ()
+	setUp() ==
+	(
+		uut := new SetMaster();
+		uut.setSet({1,2,3,4,5});
+	);
+	
+	public Test: () ==> ()
+	Test() ==
+	(
+		-- It works if I create and assign the UUT in here, but not in SetUp().
+		assertTrue(uut.getSet() = {1,2,3,4,5});
+	);
+	
+end SetMasterTest

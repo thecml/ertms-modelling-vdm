@@ -1,0 +1,15 @@
+class Runner
+operations
+	public Run : () ==> ()
+	Run() ==
+	(
+		new TestRunner().run();
+		--	let ts : TestSuite = new TestSuite(new SetMasterTest(new SetMaster())),
+      --    result : TestResult = new TestResult()
+   --   in
+     -- (
+       --   ts.run(result);
+       --   IO`print(result.toString());
+     -- );
+	);
+end Runner

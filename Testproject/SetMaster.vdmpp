@@ -1,0 +1,18 @@
+class SetMaster
+types
+values
+-- TODO Define values here
+instance variables
+	private currSet : set of nat := {};
+	
+operations
+public getSet: () ==> set of nat
+getSet() ==
+	return currSet;
+	
+public setSet: set of nat ==> ()
+setSet(pset) ==
+	currSet := pset;
+	
+functions
+end SetMaster
