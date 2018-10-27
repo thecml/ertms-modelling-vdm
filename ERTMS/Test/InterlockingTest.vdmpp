@@ -1,7 +1,7 @@
 class InterlockingTest is subclass of TestCase
 
 values
-	route = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+	routes = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
 	{mk_Interlocking`Track(15,5,20,5,"BC",110)},
 	{mk_Interlocking`Track(20,5,25,5,"CD",110)},
 	{mk_Interlocking`Track(25,5,30,5,"DE",110)},
@@ -13,34 +13,44 @@ instance variables
 operations
 	public InterlockingTest: () ==> InterlockingTest
 	InterlockingTest() ==
-		uut := new Interlocking(route);
+		uut := new Interlocking(routes);
 	
 	public Test_CtorCalledWithRoutes_RoutesInAvaRoutes: () ==> ()
 	Test_CtorCalledWithRoutes_RoutesInAvaRoutes() ==
 	(
-		assertTrue(uut.GetAvaliableRoutes() = route);
+		assertTrue(uut.GetAvaliableRoutes() = routes);
+	);
+	
+	public Test_GetAvaliableRoutesForTrack_RoutesReturned: () ==> ()
+	Test_GetAvaliableRoutesForTrack_RoutesReturned() ==
+	(
+		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
+		dcl availableRoutes : set of Interlocking`Route := uut.GetAvaliableRoutes({track});
+		assertTrue(availableRoutes subset routes);
+	);
+	
+	public Test_GetAvaliableRoutesForTrack_NoRoutesAvaliable: () ==> ()
+	Test_GetAvaliableRoutesForTrack_NoRoutesAvaliable() ==
+	(
+		dcl track : Interlocking`Track := mk_Interlocking`Track(30,5,35,5,"FG",100);
+		dcl availableRoutes : set of Interlocking`Route := uut.GetAvaliableRoutes({track});
+		assertTrue(card availableRoutes = 0);
 	);
 	
 	public Test_RouteInAvaRoutes_ProceedGranted: () ==> ()
 	Test_RouteInAvaRoutes_ProceedGranted() ==
 	(
-		dcl msg : Interlocking`Message,
-				testRoute : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
-		def mk_Interlocking`ProceedReply(message,-) = uut.RequestToProceed(testRoute)
-		in
-			msg := message;
-		assertTrue(msg = <PROCEED_GRANTED>);
+		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
+		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute);
+		assertTrue(msg.message = <PROCEED_GRANTED>);
 	);
 	
 	public Test_RouteNotInAvaRoutes_ProceedDenied: () ==> ()
 	Test_RouteNotInAvaRoutes_ProceedDenied() ==
 	(
-		dcl msg : Interlocking`Message,
-				testRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
-		def mk_Interlocking`ProceedReply(message,-) = uut.RequestToProceed(testRoute)
-		in
-			msg := message;
-		assertTrue(msg = <PROCEED_DENIED>);
+		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
+		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute);
+		assertTrue(msg.message = <PROCEED_DENIED>);
 	);
 	
 	public Test_RouteIsRequested_RoutePlacedInAvaRoutes: () ==> ()
@@ -51,12 +61,14 @@ operations
 		assertTrue(reqRoute in set uut.GetAvaliableRoutes());
 	);
 	
-	public Test_TrainEntersTrack_Trackoccupied: () ==> ()
-	Test_TrainEntersTrack_Trackoccupied() ==
+	public Test_TrainEntersAndLeavesTrack_Trackoccupied: () ==> ()
+	Test_TrainEntersAndLeavesTrack_Trackoccupied() ==
 	(
-		dcl tr : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
-		uut.SetTrackState(tr, <TRAIN_ENTER>);
-		assertTrue(tr in set uut.GetOccupiedTracks());
+		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
+		uut.SetTrackState(track, <TRAIN_ENTER>);
+		assertTrue(track in set uut.GetOccupiedTracks());
+		uut.SetTrackState(track, <TRAIN_LEAVE>);
+		assertTrue(track not in set uut.GetOccupiedTracks());
 	);
 	
 	public Test_TrainLeavesTrack_TrackNotOccupied: () ==> ()
@@ -68,5 +80,22 @@ operations
 		assertTrue(tr not in set uut.GetOccupiedTracks());
 	);
 	
-		
+	public Test_RouteHasNoDuplicateTrack_InvSucceed: () ==> ()
+	Test_RouteHasNoDuplicateTrack_InvSucceed() ==
+	(
+		dcl testRoute : set of Interlocking`Route := 
+			{{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+			 {mk_Interlocking`Track(15,5,20,5,"AC",100)}};
+		assertTrue(uut.InvNoDuplicateTrack(testRoute));
+	);
+	
+	public Test_RouteHasDuplicateTrack_InvFailed: () ==> ()
+	Test_RouteHasDuplicateTrack_InvFailed() ==
+	(
+		dcl testRoute : set of Interlocking`Route :=
+		 {{mk_Interlocking`Track(10,5,15,5,"AB",100),
+		  mk_Interlocking`Track(10,5,15,5,"AC",100)}};
+		assertFalse(uut.InvNoDuplicateTrack(testRoute));
+	);
+	
 end InterlockingTest

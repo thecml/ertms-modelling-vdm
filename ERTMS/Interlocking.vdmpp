@@ -1,10 +1,9 @@
 class Interlocking
 
 types
-	public Message = <PROCEED_GRANTED> | <PROCEED_DENIED>;
-	public ProceedReply :: Message
-												 routesAvaliable : set of Route;
-													 
+	public ProceedReplyMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public ProceedReply :: message : ProceedReplyMessage
+												 routesAvaliable : set of Route;						 
 	public Track :: startX : nat
 									startY : nat
 									endX : nat
@@ -29,9 +28,9 @@ operations
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		if(rt in set avaliableRoutes
-		 and forall tr in set rt & occupiedTracks(tr) = false)
-		then return mk_ProceedReply(<PROCEED_GRANTED>, avaliableRoutes)
+		if(rt in set avaliableRoutes 
+			and forall tr in set rt & occupiedTracks(tr) = false)
+				then return mk_ProceedReply(<PROCEED_GRANTED>, avaliableRoutes)
 		else return mk_ProceedReply(<PROCEED_DENIED>, avaliableRoutes)
 	pre card rt > 0;
 
@@ -64,8 +63,13 @@ operations
 			
 	public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==
-		--return all avaliable routes
 		return avaliableRoutes;
+		
+	public GetAvaliableRoutes: set of Track ==> set of Route
+	GetAvaliableRoutes(trs) ==
+	(
+		return (avaliableRoutes inter {trs});
+	);
 	
 	public GetOccupiedTracks : () ==> set of Track
 	GetOccupiedTracks() ==

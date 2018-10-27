@@ -1,0 +1,63 @@
+class RadioBlockCenterTest is subclass of TestCase
+values
+	routes = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+	{mk_Interlocking`Track(15,5,20,5,"BC",110)},
+	{mk_Interlocking`Track(20,5,25,5,"CD",110)},
+	{mk_Interlocking`Track(25,5,30,5,"DE",110)},
+	{mk_Interlocking`Track(25,5,30,5,"EF",110)}};
+	
+	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
+	mk_Interlocking`Track(15,5,20,5,"BC",110),
+	mk_Interlocking`Track(20,5,25,5,"CD",110),
+	mk_Interlocking`Track(25,5,30,5,"DE",110),
+	mk_Interlocking`Track(25,5,30,5,"EF",110)}
+
+instance variables
+	private uut: RadioBlockCenter;
+	
+operations
+	public RadioBlockCenterTest: () ==> RadioBlockCenterTest
+	RadioBlockCenterTest() ==
+	(
+		uut := new RadioBlockCenter(routes, tracks, new Interlocking(routes));
+	);
+	
+	public Test_CtorCalledWithTracks_TracksInResTracks: () ==> ()
+	Test_CtorCalledWithTracks_TracksInResTracks() ==
+	(
+		assertTrue(uut.GetResponsibleTracks() = tracks);
+	);
+	
+	public Test_RouteWasSetAsAvailable_RouteIsAvailable: () ==> ()
+	Test_RouteWasSetAsAvailable_RouteIsAvailable() ==
+	(
+		dcl route : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
+		assertTrue(route in set uut.GetAvailableRoutes());
+	);
+	
+	public Test_DoNotSetRouteAsAvailable_RouteIsUnavailable: () ==> ()
+	Test_DoNotSetRouteAsAvailable_RouteIsUnavailable() ==
+	(
+		dcl route : Interlocking`Route := {mk_Interlocking`Track(25,5,90,5,"HG",100)};
+		assertTrue(route not in set uut.GetAvailableRoutes());
+	);
+	
+	public Test_RequestMoaForFreeTrack_MoaGranted_: () ==> ()
+	Test_RequestMoaForFreeTrack_MoaGranted_() ==
+	(
+		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
+		dcl msg : RadioBlockCenter`MovementAuthorityReply
+		 := uut.RequestMovementAuthority(track);
+		assertTrue(msg = <MovementAuthorityGranted>);
+	);
+	
+	public Test_RequestMoaForNotFreeTrack_MoaDenied: () ==> ()
+	Test_RequestMoaForNotFreeTrack_MoaDenied() ==
+	(
+		dcl track : Interlocking`Track := mk_Interlocking`Track(90,70,95,75,"HI",100);
+		dcl msg : RadioBlockCenter`MovementAuthorityReply
+		 := uut.RequestMovementAuthority(track);
+		assertTrue(msg = <MovementAuthorityDenied>);
+	);	
+	
+end RadioBlockCenterTest
