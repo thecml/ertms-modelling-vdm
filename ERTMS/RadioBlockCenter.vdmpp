@@ -10,8 +10,7 @@ instance variables
 	private movementAuthorites : map nat to seq of Interlocking`Track;
 	private interlocking  : Interlocking;
 	
-	inv card availableRoutes < 2 or forall rt in set availableRoutes
-		& Interlocking`InvNoDuplicateTrack(rt);
+	inv card availableRoutes < 2 or Interlocking`InvNoDuplicateTrack(availableRoutes);
 
 operations
 	public RequestMovementAuthority: (Interlocking`Track) ==> MovementAuthorityMessage -- from train
@@ -20,12 +19,19 @@ operations
 		 and {tr} in set availableRoutes
 		  and busyTracks(tr) = false)
 		then (
-			if (interlocking.RequestToProceed({tr}) = <PROCEED_GRANTED>)
-			then (
-				designatedRoutes := designatedRoutes union {{tr}};
-				return <MovementAuthorityGranted>;
+			dcl msg : Interlocking`Message;
+			def mk_Interlocking`ProceedReply(message,rt) = interlocking.RequestToProceed({tr})
+				in
+				(
+					msg := message;
+					availableRoutes := availableRoutes inter rt;
+				);
+				if (msg = <PROCEED_GRANTED>)
+				then (
+					designatedRoutes := designatedRoutes union {{tr}};
+					return <MovementAuthorityGranted>;
+				) else return <MovementAuthorityDenied>;
 			) else return <MovementAuthorityDenied>;
-		) else return <MovementAuthorityDenied>;
 	
 	public SetRouteAsAvailable: Interlocking`Route ==> ()
 	SetRouteAsAvailable(rt) ==

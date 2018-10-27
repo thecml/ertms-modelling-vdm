@@ -1,7 +1,10 @@
 class Interlocking
 
 types
-	public ProceedMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public Message = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public ProceedReply :: Message
+												 routesAvaliable : set of Route;
+													 
 	public Track :: startX : nat
 									startY : nat
 									endX : nat
@@ -13,34 +16,35 @@ types
 												 rt : Route
 										
 instance variables
-	private trackOccupied : map Track to bool; -- physically occupied track
+	private occupiedTracks : map Track to bool; -- physically occupied track
 	private avaliableRoutes : set of Route; -- routes not planned to be occupied
-	private radioBlockCenters : map Route to RadioBlockCenter;
 	
-	inv card avaliableRoutes < 2 or forall rt in set avaliableRoutes & InvNoDuplicateTrack(rt);
-	inv card avaliableRoutes = card dom trackOccupied;
+	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
+	inv forall rt in set avaliableRoutes & forall tr in set rt
+	& tr not in set dom occupiedTracks or occupiedTracks(tr) = false;
 		
 operations
-	public RequestToProceed: Route ==> ProceedMessage
+	public RequestToProceed: Route ==> ProceedReply
 	RequestToProceed(rt) ==
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
 		if(rt in set avaliableRoutes
-		 and forall tr in set rt & trackOccupied(tr) = false)
-		then return <PROCEED_GRANTED>
-		else return <PROCEED_DENIED>
+		 and forall tr in set rt & occupiedTracks(tr) = false)
+		then return mk_ProceedReply(<PROCEED_GRANTED>, avaliableRoutes)
+		else return mk_ProceedReply(<PROCEED_DENIED>, avaliableRoutes)
 	pre card rt > 0;
 
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied already,
-		-- then add it to routesAvaliable and inform RBC.
+		-- then add it to routesAvaliable
 		-- else do nothing				
-		if (rt not in set avaliableRoutes and forall tr in set rt & trackOccupied(tr) = false)
+		if (rt not in set avaliableRoutes and
+			forall tr in set rt & tr not in set dom occupiedTracks
+				or occupiedTracks(tr) = false)
 		then (		
 			avaliableRoutes := avaliableRoutes union {rt};
-			radioBlockCenters(rt).SetRouteAsAvailable(rt)
 		) else skip;
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
@@ -48,29 +52,40 @@ operations
 		-- set specific track as occupied if train enters.
 		-- if train leaves, clear track and inform RBC.
 			if(sta = <TRAIN_ENTER>)
-			then trackOccupied(tr) := true
+			then occupiedTracks(tr) := true
 			else if (sta = <TRAIN_LEAVE>)
-			then ( trackOccupied := trackOccupied ++ {tr|->false};
-			radioBlockCenters({tr}).SetRouteAsAvailable({tr});
+			then (
+				occupiedTracks := occupiedTracks ++ {tr|->false};
 			);
 			
 	public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==
 		--return all avaliable routes
 		return avaliableRoutes;
-		
-	public Interlocking: set of Route * seq of RadioBlockCenter ==> Interlocking
-	Interlocking(rts, rbcs) ==
+	
+	public GetOccupiedTracks : () ==> set of Track
+	GetOccupiedTracks() ==
+	(
+		return {tr | tr in set dom occupiedTracks
+		& occupiedTracks(tr) = true};
+	);
+	
+	public Interlocking: set of Route ==> Interlocking
+	Interlocking(rts) ==
 		 atomic (
 			avaliableRoutes := rts;
-			trackOccupied :=  {let tr in set i in tr |-> false | i in set rts};
-			radioBlockCenters := {rbc.GetResponsibleTracks() |-> rbc | rbc in seq rbcs}
-		);
+			occupiedTracks :=  {let tr in set i in tr |-> false | i in set rts};
+		 );
 
 functions
-	public InvNoDuplicateTrack: Route -> bool
-	InvNoDuplicateTrack(rt) ==
-		forall tr1, tr2 in set rt & tr1 <> tr2 => tr1 <> tr2;
+	public InvNoDuplicateTrack: set of Route -> bool
+	InvNoDuplicateTrack(srt) ==
+	-- a route cannot contain the same track twice,
+	-- but two routes can contain the same track
+		forall rt1 in set srt &
+		  forall tr1,tr2 in set rt1 & tr1 <> tr2
+		 		=> tr1.startX <> tr2.startX or tr1.endX <> tr2.endX 
+		 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;
 				
 	public InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==

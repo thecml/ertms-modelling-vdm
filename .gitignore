@@ -1,5 +1,6 @@
 Journal
 .metadata
+ERTMS/generated/*
 bin/
 tmp/
 *.tmp

@@ -1,0 +1,72 @@
+class InterlockingTest is subclass of TestCase
+
+values
+	route = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+	{mk_Interlocking`Track(15,5,20,5,"BC",110)},
+	{mk_Interlocking`Track(20,5,25,5,"CD",110)},
+	{mk_Interlocking`Track(25,5,30,5,"DE",110)},
+	{mk_Interlocking`Track(25,5,30,5,"EF",110)}};
+
+instance variables
+	private uut: Interlocking;
+	
+operations
+	public InterlockingTest: () ==> InterlockingTest
+	InterlockingTest() ==
+		uut := new Interlocking(route);
+	
+	public Test_CtorCalledWithRoutes_RoutesInAvaRoutes: () ==> ()
+	Test_CtorCalledWithRoutes_RoutesInAvaRoutes() ==
+	(
+		assertTrue(uut.GetAvaliableRoutes() = route);
+	);
+	
+	public Test_RouteInAvaRoutes_ProceedGranted: () ==> ()
+	Test_RouteInAvaRoutes_ProceedGranted() ==
+	(
+		dcl msg : Interlocking`Message,
+				testRoute : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
+		def mk_Interlocking`ProceedReply(message,-) = uut.RequestToProceed(testRoute)
+		in
+			msg := message;
+		assertTrue(msg = <PROCEED_GRANTED>);
+	);
+	
+	public Test_RouteNotInAvaRoutes_ProceedDenied: () ==> ()
+	Test_RouteNotInAvaRoutes_ProceedDenied() ==
+	(
+		dcl msg : Interlocking`Message,
+				testRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
+		def mk_Interlocking`ProceedReply(message,-) = uut.RequestToProceed(testRoute)
+		in
+			msg := message;
+		assertTrue(msg = <PROCEED_DENIED>);
+	);
+	
+	public Test_RouteIsRequested_RoutePlacedInAvaRoutes: () ==> ()
+	Test_RouteIsRequested_RoutePlacedInAvaRoutes() ==
+	(
+		dcl reqRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
+		uut.RequestRoute(reqRoute);
+		assertTrue(reqRoute in set uut.GetAvaliableRoutes());
+	);
+	
+	public Test_TrainEntersTrack_Trackoccupied: () ==> ()
+	Test_TrainEntersTrack_Trackoccupied() ==
+	(
+		dcl tr : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
+		uut.SetTrackState(tr, <TRAIN_ENTER>);
+		assertTrue(tr in set uut.GetOccupiedTracks());
+	);
+	
+	public Test_TrainLeavesTrack_TrackNotOccupied: () ==> ()
+	Test_TrainLeavesTrack_TrackNotOccupied() ==
+	(
+		dcl tr : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
+		uut.SetTrackState(tr, <TRAIN_ENTER>);
+		uut.SetTrackState(tr, <TRAIN_LEAVE>);
+		assertTrue(tr not in set uut.GetOccupiedTracks());
+	);
+	
+		
+end InterlockingTest
