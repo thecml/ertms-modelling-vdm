@@ -1,0 +1,60 @@
+class EurobaliseTest is subclass of TestCase
+values
+	routes = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+	{mk_Interlocking`Track(15,5,20,5,"BC",110)},
+	{mk_Interlocking`Track(20,5,25,5,"CD",110)},
+	{mk_Interlocking`Track(25,5,30,5,"DE",110)},
+	{mk_Interlocking`Track(25,5,30,5,"EF",110)}};
+	
+	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
+	mk_Interlocking`Track(15,5,20,5,"BC",110)};
+	
+	track = mk_Interlocking`Track(10,5,15,5,"AB",100);
+
+instance variables
+	private uut: Eurobalise;
+	private itl: Interlocking;
+
+operations
+	public EurobaliseTest: () ==> EurobaliseTest
+	EurobaliseTest() ==
+	(
+		itl := new Interlocking(routes);
+		uut := new Eurobalise(itl, track);
+	);
+
+	public Test_CtorCalledWithTrack_TrackIsAssigned: () ==> ()
+	Test_CtorCalledWithTrack_TrackIsAssigned() ==
+	(
+		assertTrue(track = uut.GetTrack());
+	);
+	
+	public Test_EnterNotCalled_ItlDoesNotChangeStateForTrack: () ==> ()
+	Test_EnterNotCalled_ItlDoesNotChangeStateForTrack() ==
+	(
+		dcl occupiedTracks : set of Interlocking`Track;
+		occupiedTracks := itl.GetOccupiedTracks();
+		assertTrue(track not in set occupiedTracks);
+	);
+	
+	public Test_EnterCalled_ItlChangeStateForTrack: () ==> ()
+	Test_EnterCalled_ItlChangeStateForTrack() ==
+	(
+		dcl occupiedTracks : set of Interlocking`Track;
+		uut.Enter();
+		occupiedTracks := itl.GetOccupiedTracks();
+		assertTrue(track in set occupiedTracks);
+	);
+	
+	public Test_LeaveCalled_ItlChangeStateForTrack: () ==> ()
+	Test_LeaveCalled_ItlChangeStateForTrack() ==
+	(
+		dcl occupiedTracks : set of Interlocking`Track;
+		uut.Enter();
+		uut.Leave();
+		occupiedTracks := itl.GetOccupiedTracks();
+		assertTrue(track not in set occupiedTracks);
+	);
+	
+	
+end EurobaliseTest

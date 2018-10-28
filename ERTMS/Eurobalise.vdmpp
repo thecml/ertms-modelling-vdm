@@ -3,7 +3,7 @@ types
 	public TrainState = <TRAIN_ENTER> | <TRAIN_LEAVE>;
 	
 instance variables
-	private interlocking : Interlocking;
+	private itl : Interlocking;
 	private track: Interlocking`Track;
 	
 operations
@@ -11,21 +11,23 @@ operations
 	Enter() ==
 		-- notify interlocking that train has entered track
 		-- and return permitted speed for the track
-		(
-			interlocking.SetTrackState(track, <TRAIN_ENTER>);
-		);
+		itl.SetTrackState(track, <TRAIN_ENTER>);
 		
 	public Leave: () ==> ()
 	Leave() ==
 	  -- notify interlocking that train has left track
-		interlocking.SetTrackState(track, <TRAIN_LEAVE>);
+		itl.SetTrackState(track, <TRAIN_LEAVE>);
+		
+	public GetTrack: () ==> Interlocking`Track
+	GetTrack() ==
+		-- get track
+		return track;
 			
 	public Eurobalise : Interlocking * Interlocking`Track ==> Eurobalise
-	Eurobalise(itl, tr) ==
-	atomic (
-		interlocking := itl;
+	Eurobalise(pitl, tr) ==
+	(
+		itl := pitl;
 		track := tr;
 	);
 	
-functions
 end Eurobalise
