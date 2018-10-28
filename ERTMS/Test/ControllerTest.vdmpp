@@ -1,0 +1,42 @@
+class ControllerTest  is subclass of TestCase
+values
+	routes = [{mk_Interlocking`Track(10,5,15,5,"AB",100)},
+	{mk_Interlocking`Track(15,5,20,5,"BC",110)},
+	{mk_Interlocking`Track(20,5,25,5,"CD",110)},
+	{mk_Interlocking`Track(25,5,30,5,"DE",110)},
+	{mk_Interlocking`Track(25,5,30,5,"EF",110)}];
+	
+	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
+	mk_Interlocking`Track(15,5,20,5,"BC",110),
+	mk_Interlocking`Track(20,5,25,5,"CD",110),
+	mk_Interlocking`Track(25,5,30,5,"DE",110),
+	mk_Interlocking`Track(25,5,30,5,"EF",110)}
+
+instance variables
+	private uut: Controller;
+	private itl: Interlocking;
+
+operations
+	public ControllerTest: () ==> ControllerTest
+	ControllerTest() ==
+	(
+		itl := new Interlocking({});
+		uut := new Controller(routes, itl);
+	);
+	
+	public Test_StepOneTime_OneRoutePlacedIntoItl: () ==> ()
+	Test_StepOneTime_OneRoutePlacedIntoItl() ==
+	(
+		uut.Step();
+		assertTrue(card itl.GetAvaliableRoutes() = 1);
+	);
+	
+	public Test_StepOneTime_RandomRouteFromRoutesPlacedIntoItl: () ==> ()
+	Test_StepOneTime_RandomRouteFromRoutesPlacedIntoItl() ==
+	(
+		uut.Step();
+		assertTrue(itl.GetAvaliableRoutes() subset {rt|rt in seq routes});
+	);
+	
+	
+end ControllerTest

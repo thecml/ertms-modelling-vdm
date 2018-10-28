@@ -15,9 +15,11 @@ Concerns and requirements:
 
 R1: A train shall not enter a block section which is occupied by another train (same track).
 R2: A train shall not pass a track boundary without being given a movement authority (MA) to do so.
-R3: Two trains cannot have a MA for the same track at the same time.
-R4: When a train has traversed half the track, it shall request a MA for the next track.
-R5: A RBC shall not answer MA's for tracks it is not responsible for.
+R3: A train shall request a MovementAuthority before entering a track.
+R4: Two trains cannot have a MA for the same track at the same time.
+R5: When a train has traversed half its current track, it shall request a MA for the next track.
+R6: A RBC shall not answer MA's for tracks it is not responsible for.
+
 
 Scenario:
 

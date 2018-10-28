@@ -19,8 +19,8 @@ instance variables
 	inv speed <= maxSpeed;
 	
 operations
-	public Run: () ==> ()
-	Run() ==
+	public Step: () ==> ()
+	Step() ==
 		is not yet specified;
 		
 	public Start: () ==> ()
