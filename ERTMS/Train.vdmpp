@@ -1,27 +1,71 @@
 class Train	
 instance variables
-	private startX : nat;
-	private startY : nat;
+	private posX : nat;
+	private posY : nat;
 	private destX : nat;
 	private destY : nat;
 	private tracksInTotal: nat;
 	private currentTrack : nat;
 	private route : inmap nat to Interlocking`Track;
 	private transponders : map Interlocking`Track to Eurobalise;
-	private radioBlockCenter : RadioBlockCenter;
-	private maxSpeed : nat;
-	private speed : nat := 0;
+	private rbc : RadioBlockCenter;
+	private movementAuthorities : inmap Interlocking`Track to bool;
+	--private maxSpeed : nat;
+	--private speed : nat := 0;
 	private running : bool := false;
 	
 	inv forall x in set {0, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
-	inv speed > 0 and running = true or speed = 0 and running = false;
-	inv speed <= maxSpeed;
+	inv currentTrack in set {1, ..., card dom route};
+	--inv speed > 0 and running = true or speed = 0 and running = false;
+	--inv speed <= maxSpeed;
 	
 operations
 	public Step: () ==> ()
 	Step() ==
-		is not yet specified;
+	(
+		-- continue if there is track to traverse
+		if(currentTrack < tracksInTotal) then
+		(
+			dcl currentEb : Eurobalise := transponders(route(currentTrack));
+			-- make sure we have MoA for current track
+			if (movementAuthorities(route(currentTrack))) then (
+				if (posX = route(currentTrack).startX and posY = route(currentTrack).startY)
+				then (
+					-- measure the distance
+					dcl endpx : nat := route(currentTrack).endX;
+					dcl endpy : nat := route(currentTrack).endY;
+					dcl dist : nat := MATH`sqrt(((posX-endpx)**2)+((posY-endpy)**2));
+					-- enter track
+					currentEb.Enter();
+					if(posX = endpx) then (
+						posY := posY + dist;
+					) else if (posY = endpy) then (
+						posX := posX + dist;
+					)
+				) else if (
+					posX = route(currentTrack).endX and posY = route(currentTrack).endY
+				) then (
+					-- move onto next track
+					currentEb.Leave();
+					currentTrack := currentTrack+1;
+				)
+			) else (
+				dcl reply : RadioBlockCenter`MovementAuthorityReply
+				 := rbc.RequestMovementAuthority(route(currentTrack));
+				if(reply = <MovementAuthorityGranted>) then (
+					-- update movement authorities list and start train
+					movementAuthorities := movementAuthorities munion {tr |-> true | tr in set rng route};
+					running := true;
+				) else (
+					running := false;
+				)
+			)
+		) else (
+			-- train has reached end of route
+			running := false
+		)
+	);
 		
 	public Start: () ==> ()
 	Start() ==
@@ -34,28 +78,28 @@ operations
 	private Stop: () ==> ()
 	Stop() ==
 	(
-		speed := 0;
 		running := false;
 	);
 		
-	private Accelerate: (nat1) ==> ()	
-	Accelerate(amount) ==
-		if running then speed := speed + amount else speed := 0; 
+	--private Accelerate: (nat1) ==> ()	
+	--Accelerate(amount) ==
+		--if running then speed := speed + amount else speed := 0; 
 		
 	public Train: map nat to Interlocking`Track
-	 * map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
-	 Train(rt,trans,rbc) ==
+	* map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
+	 Train(rt,trans,prbc) ==
 	 atomic (
-	 	startX := rt(1).startX;
-	 	startY := rt(1).startY;
+	 	posX := rt(1).startX;
+	 	posY := rt(1).startY;
 	 	destX := rt(1).endX;
 	 	destY := rt(1).endY;
 	 	currentTrack := 1;
 	 	tracksInTotal := card dom rt;
 	 	route := rt;
 	 	transponders := trans;
-	 	radioBlockCenter := rbc;
-	 	maxSpeed := rt(1).maxSpeed;
+	 	rbc := prbc;
+	 	movementAuthorities := {|->};
+--	 	maxSpeed := rt(1).maxSpeed;
 	 );
 functions
 	public InvTrackIsConnected: Interlocking`Track * Interlocking`Track -> bool
