@@ -1,6 +1,6 @@
 class Train	
 instance variables
-	private posX : nat;
+	private posX : real;
 	private posY : nat;
 	private destX : nat;
 	private destY : nat;
@@ -28,33 +28,48 @@ operations
 		if(currentTrack < tracksInTotal) then
 		(
 			dcl currentEb : Eurobalise := transponders(route(currentTrack));
+			dcl distX : real := route(currentTrack).endX-posX;
+			dcl distY : real := route(currentTrack).endY-posY;
 			-- make sure we have MoA for current track
 			if (movementAuthorities(route(currentTrack))) then (
 				if (posX = route(currentTrack).startX and posY = route(currentTrack).startY)
 				then (
-					-- measure the distance
-					dcl endpx : nat := route(currentTrack).endX;
-					dcl endpy : nat := route(currentTrack).endY;
-					dcl dist : nat := MATH`sqrt(((posX-endpx)**2)+((posY-endpy)**2));
+					-- dcl dist : nat := MATH`sqrt(((posX-endpx)**2)+((posY-endpy)**2));
 					-- enter track
 					currentEb.Enter();
-					if(posX = endpx) then (
-						posY := posY + dist;
-					) else if (posY = endpy) then (
-						posX := posX + dist;
+					-- calculate distances
+					if (distX = 0 and distY <> 0) then
+					(
+						posY := posY + distY/2;
 					)
+					else if (distY = 0 and distX <> 0) then (
+						posX := posX + distX/2;
+					);
 				) else if (
 					posX = route(currentTrack).endX and posY = route(currentTrack).endY
 				) then (
 					-- move onto next track
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
-				)
+				) else (
+					-- we are halfway through. request MoA
+					dcl reply : RadioBlockCenter`MovementAuthorityReply := rbc.RequestMovementAuthority(route(currentTrack));
+					if(reply = <MovementAuthorityGranted>) then (
+						movementAuthorities := movementAuthorities munion {tr |-> true | tr in set rng route};
+					);
+					-- drive the remaining of the way
+					if (distX = 0 and distY <> 0) then
+					(
+						posY := posY + distY;
+					)
+					else if (distY = 0 and distX <> 0) then
+					(
+						posX := posX + distX;
+					);
+				);
 			) else (
-				dcl reply : RadioBlockCenter`MovementAuthorityReply
-				 := rbc.RequestMovementAuthority(route(currentTrack));
+				dcl reply : RadioBlockCenter`MovementAuthorityReply := rbc.RequestMovementAuthority(route(currentTrack));
 				if(reply = <MovementAuthorityGranted>) then (
-					-- update movement authorities list and start train
 					movementAuthorities := movementAuthorities munion {tr |-> true | tr in set rng route};
 					running := true;
 				) else (
@@ -66,7 +81,7 @@ operations
 			running := false
 		)
 	);
-		
+			
 	public Start: () ==> ()
 	Start() ==
 		running := true;
