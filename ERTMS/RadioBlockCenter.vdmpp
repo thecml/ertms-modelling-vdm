@@ -32,7 +32,7 @@ operations
 			)
 		) else return <MovementAuthorityDenied>;
 		
-	public UpdateAvailableRoutes: () ==> ()
+	private UpdateAvailableRoutes: () ==> ()
 	UpdateAvailableRoutes() ==
 		availableRoutes := itl.GetAvaliableRoutes(responsibleTracks);
 		
@@ -55,16 +55,16 @@ operations
 	);
 		
 functions
-	private IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track -> bool
+	public IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track -> bool
 	IsTrackInSetOfTracks(tr,trs) ==
 		tr in set trs;
 
-	private IsTrackInRoute: Interlocking`Track * Interlocking`Route -> bool
+	public IsTrackInRoute: Interlocking`Track * Interlocking`Route -> bool
 	IsTrackInRoute(tr, rt) ==
 		forall rtt in set rt & tr = rtt
 	pre card rt > 0;
 
-	private IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
+	public IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
 	IsTrackOccupied(tr,routemap) ==
 		routemap(tr) = false
 	pre tr in set dom routemap;
