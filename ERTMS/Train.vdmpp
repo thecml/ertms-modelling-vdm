@@ -2,21 +2,17 @@ class Train
 instance variables
 	private posX : real;
 	private posY : real;
-	private destX : nat;
-	private destY : nat;
-	private tracksInTotal: nat;
 	private currentTrack : nat;
 	private route : inmap nat to Interlocking`Track;
 	private transponders : map Interlocking`Track to Eurobalise;
 	private rbc : RadioBlockCenter;
-	private movementAuthorities : inmap Interlocking`Track to bool;
+	private movementAuths : inmap Interlocking`Track to bool;
 	--private maxSpeed : nat;
 	--private speed : nat := 0;
 	private running : bool := false;
 	
 	inv forall x in set {0, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
-	inv currentTrack in set {1, ..., card dom route};
 	--inv speed > 0 and running = true or speed = 0 and running = false;
 	--inv speed <= maxSpeed;
 	
@@ -27,27 +23,28 @@ operations
 		Drive();
 	);
 	
+	-- Drive() performs one iteration of moving the train
 	private Drive: () ==> ()
 	Drive() ==
 	(
 		-- continue if there is track to traverse
-		if(currentTrack < tracksInTotal) then
+		if(currentTrack < card dom route) then
 		(
 			dcl currentEb : Eurobalise := transponders(route(currentTrack));
 			dcl distX : real := route(currentTrack).endX-posX;
 			dcl distY : real := route(currentTrack).endY-posY;
 			-- make sure we have MoA for current track
-			if (movementAuthorities(route(currentTrack))) then (
+			if (movementAuths(route(currentTrack))) then (
 				-- check where the train is currently
 				if (posX = route(currentTrack).startX and posY = route(currentTrack).startY)
 				then (
 					-- dcl dist : nat := MATH`sqrt(((posX-endpx)**2)+((posY-endpy)**2));
 					-- enter track
 					currentEb.Enter();
-					-- update positions
+					-- drive train halfway
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY/2; )
 					else if (distY = 0 and distX <> 0) then ( posX := posX + distX/2; )
-					else if(distY <> 0 and distX <> 0) then
+					else if (distY <> 0 and distX <> 0) then
 					(
 						posY := posY + distY/2;
 						posX := posX + distX/2;
@@ -60,10 +57,9 @@ operations
 					currentTrack := currentTrack+1;
 				) else (
 					-- we are halfway through. request MoA
-					dcl reply : RadioBlockCenter`MovementAuthorityReply
-					 := rbc.RequestMovementAuthority(route(currentTrack));
-					if(reply = <MovementAuthorityGranted>) then (
-						movementAuthorities := movementAuthorities munion {tr |-> true | tr in set rng route};
+					if(rbc.RequestMovementAuthority(route(currentTrack))
+					 = <MovementAuthorityGranted>) then (
+						movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
 					);
 					-- drive the remaining of the way
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
@@ -75,10 +71,9 @@ operations
 					);
 				);
 			) else (
-				dcl reply : RadioBlockCenter`MovementAuthorityReply
-				 := rbc.RequestMovementAuthority(route(currentTrack));
-				if(reply = <MovementAuthorityGranted>) then (
-					movementAuthorities := movementAuthorities munion {tr |-> true | tr in set rng route};
+				if(rbc.RequestMovementAuthority(route(currentTrack))
+				 = <MovementAuthorityGranted>) then (
+					movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
 					running := true;
 				) else (
 					running := false;
@@ -106,14 +101,11 @@ operations
 	 atomic (
 	 	posX := rt(1).startX;
 	 	posY := rt(1).startY;
-	 	destX := rt(1).endX;
-	 	destY := rt(1).endY;
 	 	currentTrack := 1;
-	 	tracksInTotal := card dom rt;
 	 	route := rt;
 	 	transponders := trans;
 	 	rbc := prbc;
-	 	movementAuthorities := {|->};
+	 	movementAuths := {|->};
 	 );
 	 
 functions
