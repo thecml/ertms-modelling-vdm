@@ -16,7 +16,7 @@ operations
 		if(tr in set responsibleTracks
 		 and {tr} in set availableRoutes)
 		then (
-			dcl msg : Interlocking`ProceedReplyMessage;
+			dcl msg : Interlocking`Order;
 			def mk_Interlocking`ProceedReply(message,rt) = itl.RequestToProceed({tr})
 			in
 			(

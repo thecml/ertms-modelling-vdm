@@ -1,8 +1,8 @@
 class Interlocking
 
 types
-	public ProceedReplyMessage = <PROCEED_GRANTED> | <PROCEED_DENIED>;
-	public ProceedReply :: message : ProceedReplyMessage
+	public Order = <PROCEED_GRANTED> | <PROCEED_DENIED>;
+	public ProceedReply :: message : Order
 												 routesAvaliable : set of Route;						 
 	public Track :: startX : nat
 									startY : nat
