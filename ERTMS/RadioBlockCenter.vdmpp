@@ -27,7 +27,7 @@ operations
 				then (
 					return <MovementAuthorityGranted>;
 				) else (
-					availableRoutes := availableRoutes \ {{tr}};
+					availableRoutes := {rt | art in set availableRoutes & art inter {tr} = {}};
 					return <MovementAuthorityDenied>;
 			)
 		) else return <MovementAuthorityDenied>;

@@ -16,22 +16,26 @@ types
 										
 instance variables
 	private occupiedTracks : map Track to bool; -- physically occupied track
-	private avaliableRoutes : set of Route; -- routes not planned to be occupied
+	private availableRoutes : set of Route; -- routes not planned to be occupied
 	
-	inv card avaliableRoutes < 2 or InvNoDuplicateTrack(avaliableRoutes);
-	inv forall rt in set avaliableRoutes & forall tr in set rt
+	inv card availableRoutes < 2 or InvNoDuplicateTrack(availableRoutes);
+	inv forall rt in set availableRoutes & forall tr in set rt
 		& tr not in set dom occupiedTracks or occupiedTracks(tr) = false;
-		
+	
 operations
 	public RequestToProceed: Route ==> ProceedReply
 	RequestToProceed(prt) ==
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		let rt in set avaliableRoutes in
-			if(prt subset rt and forall tr in set prt & occupiedTracks(tr) = false)
-				then return mk_ProceedReply(<PROCEED_GRANTED>, avaliableRoutes)
-		else return mk_ProceedReply(<PROCEED_DENIED>, avaliableRoutes)
+		if (card availableRoutes > 0) then (
+			let rt in set availableRoutes in
+				if(prt subset rt and forall tr in set prt & occupiedTracks(tr) = false)
+					then return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes)
+			else return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes)
+			) else (
+				return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes);
+			)
 	pre card prt > 0;
 
 	public RequestRoute: (Route) ==> ()
@@ -39,11 +43,11 @@ operations
 		-- if route is not in routesAvaliable and the tracks are not occupied already,
 		-- then add it to routesAvaliable
 		-- else do nothing				
-		if (rt not in set avaliableRoutes and
+		if (rt not in set availableRoutes and
 			forall tr in set rt & tr not in set dom occupiedTracks
 				or occupiedTracks(tr) = false)
 		then (		
-			avaliableRoutes := avaliableRoutes union {rt};
+			availableRoutes := availableRoutes union {rt};
 			let tr in set rt
 			in
 				occupiedTracks := occupiedTracks ++ {tr |-> false}
@@ -53,22 +57,27 @@ operations
 		SetTrackState(tr, sta) ==
 		-- set specific track as occupied if train enters.
 		-- if train leaves, clear track and inform RBC.
-		if(sta = <TRAIN_ENTER>) then
-				occupiedTracks(tr) := true
+		if(sta = <TRAIN_ENTER>) then (
+		atomic (
+				occupiedTracks(tr) := true;
+				availableRoutes := {rt | rt in set availableRoutes & rt inter {tr} = {}};
+				)
+			)
 		else if (sta = <TRAIN_LEAVE>)
 			then (
 				occupiedTracks := occupiedTracks ++ {tr|->false};
+				availableRoutes := availableRoutes union {{tr}};
 			)
 		pre tr in set dom occupiedTracks;
 			
 	public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==
-		return avaliableRoutes;
+		return availableRoutes;
 		
 	public GetAvaliableRoutes: set of Track ==> set of Route
 	GetAvaliableRoutes(trs) ==
 	(
-		return (avaliableRoutes inter {trs});
+		return (availableRoutes inter {trs});
 	);
 	
 	public GetOccupiedTracks : () ==> set of Track
@@ -81,7 +90,7 @@ operations
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
 		 atomic (
-			avaliableRoutes := rts;
+			availableRoutes := rts;
 			occupiedTracks := { tr |-> false | tr in set GetTracksInRoute(rts)};
 		 )
 

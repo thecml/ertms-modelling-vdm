@@ -66,8 +66,8 @@ operations
 		assertTrue(routeMap(1) in set itl.GetOccupiedTracks());
 	);
 	
-	public Test_TrackFree_TrainGetsMoaAndDrivesHalfWayOnXAxis: () ==> ()
-	Test_TrackFree_TrainGetsMoaAndDrivesHalfWayOnXAxis() ==
+	public Test_TrackFree_TrainGetsMoaAndDrivesHalfWay: () ==> ()
+	Test_TrackFree_TrainGetsMoaAndDrivesHalfWay() ==
 	(
 		dcl pointX : real := (routeMap(1).endX-routeMap(1).startX)/2;
 		uut.Start();
@@ -86,5 +86,38 @@ operations
 		assertTrue(routeMap(2) in set uut.GetMovementAuths());
 	);
 	
+	public Test_TrainIsHalfWay_TrainDrivesToEnd: () ==> ()
+	Test_TrainIsHalfWay_TrainDrivesToEnd() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		assertTrue(uut.GetPosX() = routeMap(1).endX);
+		assertTrue(uut.GetPosY() = routeMap(1).endY);
+	);
+	
+	public Test_TrainIsAtTheEnd_LeavesCurrentTrack: () ==> ()
+	Test_TrainIsAtTheEnd_LeavesCurrentTrack() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		assertTrue(routeMap(1) not in set itl.GetOccupiedTracks());
+	);
+	
+	public Test_TrainIsAtTheEnd_EntersNewTrack: () ==> ()
+	Test_TrainIsAtTheEnd_EntersNewTrack() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		assertTrue(routeMap(2) in set itl.GetOccupiedTracks());
+	);
 	
 end TrainTest

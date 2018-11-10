@@ -29,7 +29,7 @@ operations
 	Drive() ==
 	(
 		-- continue if there is track to traverse
-		if(currentTrack < card dom route and running) then
+		if(currentTrack <= card dom route and running) then
 		(
 			dcl currentEb : Eurobalise := transponders(route(currentTrack));
 			dcl distX : real := route(currentTrack).endX-posX;
