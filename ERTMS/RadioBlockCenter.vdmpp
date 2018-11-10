@@ -1,6 +1,13 @@
 class RadioBlockCenter
 types
 	public MovementAuthorityReply = <MovementAuthorityGranted> | <MovementAuthorityDenied>;
+	
+values
+tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
+	mk_Interlocking`Track(15,5,20,5,"BC",110),
+	mk_Interlocking`Track(20,5,25,5,"CD",110),
+	mk_Interlocking`Track(25,5,30,5,"DE",110),
+	mk_Interlocking`Track(25,5,30,5,"EF",110)}
 
 instance variables
 	private responsibleTracks : set of Interlocking`Track;
@@ -66,7 +73,33 @@ functions
 
 	public IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
 	IsTrackOccupied(tr,routemap) ==
-		routemap(tr) = false
+		routemap(tr) = true
 	pre tr in set dom routemap;
+
+traces
+T1: let tr in set tracks in
+			let trs = tracks in
+				IsTrackInSetOfTracks(tr, trs);
+
+T2: let tr = mk_Interlocking`Track(25,5,30,10,"AB",100) in
+			let trs = tracks in
+				IsTrackInSetOfTracks(tr, trs);
+
+T3: let tr in set tracks in
+			IsTrackInRoute(tr, tracks);
+			
+T4: let tr = mk_Interlocking`Track(25,5,30,10,"AB",100) in
+			IsTrackInRoute(tr, tracks);
 		
+T5: let tr in set tracks in
+				IsTrackInRoute(tr, {}); 
+				
+T6: let tr in set tracks in
+			let trmap = {mk_Interlocking`Track(10,5,15,5,"AB",100) |-> true} in
+					IsTrackOccupied(tr, trmap);
+			
+T7: let tr in set tracks in
+			let trmap = {mk_Interlocking`Track(10,5,15,5,"AB",100) |-> false} in
+					IsTrackOccupied(tr, trmap);
+					
 end RadioBlockCenter
