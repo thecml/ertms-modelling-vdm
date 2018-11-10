@@ -120,4 +120,18 @@ operations
 		assertTrue(routeMap(2) in set itl.GetOccupiedTracks());
 	);
 	
+	public Test_TrainAtNextTrack_TrainDrivesToEnd: () ==> ()
+	Test_TrainAtNextTrack_TrainDrivesToEnd() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		assertTrue(uut.GetPosX() = routeMap(2).endX);
+		assertTrue(uut.GetPosY() = routeMap(2).endY);
+	);
+	
 end TrainTest

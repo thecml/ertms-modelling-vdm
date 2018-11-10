@@ -57,10 +57,13 @@ operations
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
 				) else (
-					-- we are halfway through. request MoA for next track
-					if(rbc.RequestMovementAuthority(route(currentTrack+1))
-					 = <MovementAuthorityGranted>) then (
-						movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
+					-- we are halfway through. request MoA for next track,
+					-- if there is a next track
+					if (card dom route > currentTrack) then (
+						if(rbc.RequestMovementAuthority(route(currentTrack+1))
+					 		= <MovementAuthorityGranted>) then (
+								movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
+							)
 					);
 					-- drive the remaining way
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
