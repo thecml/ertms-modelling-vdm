@@ -24,15 +24,15 @@ instance variables
 		
 operations
 	public RequestToProceed: Route ==> ProceedReply
-	RequestToProceed(rt) ==
+	RequestToProceed(prt) ==
 		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
 			-- grant proceed by returning true
 		-- else return false
-		if(rt in set avaliableRoutes 
-			and forall tr in set rt & occupiedTracks(tr) = false)
+		let rt in set avaliableRoutes in
+			if(prt subset rt and forall tr in set prt & occupiedTracks(tr) = false)
 				then return mk_ProceedReply(<PROCEED_GRANTED>, avaliableRoutes)
 		else return mk_ProceedReply(<PROCEED_DENIED>, avaliableRoutes)
-	pre card rt > 0;
+	pre card prt > 0;
 
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==

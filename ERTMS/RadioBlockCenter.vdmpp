@@ -17,11 +17,11 @@ operations
 			if(tr in set responsibleTracks and tr in set rt)
 			then (
 				dcl msg : Interlocking`Order;
-				def mk_Interlocking`ProceedReply(message,rt) = itl.RequestToProceed({tr})
+				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed({tr})
 				in
 				(
 					msg := message;
-					availableRoutes := rt;
+					availableRoutes := rtr;
 				);
 				if (msg = <PROCEED_GRANTED>)
 				then (

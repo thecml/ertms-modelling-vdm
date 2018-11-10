@@ -74,7 +74,7 @@ operations
 			) else (
 				if(rbc.RequestMovementAuthority(route(currentTrack))
 				 = <MovementAuthorityGranted>) then (
-					movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
+					movementAuths := movementAuths ++ {tr |-> true | tr in set rng route};
 					running := true;
 				) else (
 					running := false;
