@@ -53,8 +53,8 @@ operations
 		SetTrackState(tr, sta) ==
 		-- set specific track as occupied if train enters.
 		-- if train leaves, clear track and inform RBC.
-		if(sta = <TRAIN_ENTER>)
-			then occupiedTracks(tr) := true
+		if(sta = <TRAIN_ENTER>) then
+				occupiedTracks(tr) := true
 		else if (sta = <TRAIN_LEAVE>)
 			then (
 				occupiedTracks := occupiedTracks ++ {tr|->false};
@@ -82,10 +82,20 @@ operations
 	Interlocking(rts) ==
 		 atomic (
 			avaliableRoutes := rts;
-			occupiedTracks :=  {let tr in set i in tr |-> false | i in set rts};
-		 );
+			occupiedTracks := { tr |-> false | tr in set GetTracksInRoute(rts)};
+		 )
 
 functions
+	private GetTracksInRoute: set of Route -> set of Track
+	GetTracksInRoute(rts) ==
+	(
+		if (card rts > 0) then
+		(
+			let rt in set rts in
+				rt
+		) else {}
+	);
+	
 	public InvNoDuplicateTrack: set of Route -> bool
 	InvNoDuplicateTrack(srt) ==
 	-- a route cannot contain the same track twice,

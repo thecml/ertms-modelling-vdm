@@ -57,12 +57,12 @@ operations
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
 				) else (
-					-- we are halfway through. request MoA
-					if(rbc.RequestMovementAuthority(route(currentTrack))
+					-- we are halfway through. request MoA for next track
+					if(rbc.RequestMovementAuthority(route(currentTrack+1))
 					 = <MovementAuthorityGranted>) then (
 						movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
 					);
-					-- drive the remaining of the way
+					-- drive the remaining way
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
 					else if (distY = 0 and distX <> 0) then ( posX := posX + distX; )
 					else if (distX <> 0 and distY <> 0) then
@@ -96,17 +96,21 @@ operations
 		running := false;
 	);
 	
-	public GetPosX: () ==> nat
+	public GetPosX: () ==> real
 	GetPosX() ==
 		return posX;
 		
-	public GetPosY: () ==> nat
+	public GetPosY: () ==> real
 	GetPosY() ==
 		return posY;
 		
 	public IsRunning: () ==> bool
 	IsRunning() ==
 		return running;
+		
+	public GetMovementAuths: () ==> set of Interlocking`Track
+	GetMovementAuths() ==
+		return {tr | tr in set dom movementAuths & movementAuths(tr) = true};
 		
 	public Train: map nat to Interlocking`Track
 	* map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train

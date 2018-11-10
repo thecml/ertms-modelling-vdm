@@ -1,6 +1,6 @@
 class TrainTest is subclass of TestCase
 
-values	
+values
 	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
 	mk_Interlocking`Track(15,5,20,5,"BC",110)};
 	
@@ -45,6 +45,15 @@ operations
 		assertFalse(uut.IsRunning());
 	);
 	
+	public Test_TrackFree_TrainGetsMoa: () ==> ()
+	Test_TrackFree_TrainGetsMoa() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		assertTrue(routeMap(1) in set uut.GetMovementAuths());
+	);
+	
 	public Test_TrackFree_TrainGetsMoaAndEntersTrack: () ==> ()
 	Test_TrackFree_TrainGetsMoaAndEntersTrack() ==
 	(
@@ -54,20 +63,28 @@ operations
 		assertTrue(itl.GetOccupiedTracks() = {});
 		uut.Step();
 		-- track is now occupied in ITL
-		assertTrue(itl.GetOccupiedTracks() <> {});
+		assertTrue(routeMap(1) in set itl.GetOccupiedTracks());
 	);
 	
+	public Test_TrackFree_TrainGetsMoaAndDrivesHalfWayOnXAxis: () ==> ()
+	Test_TrackFree_TrainGetsMoaAndDrivesHalfWayOnXAxis() ==
+	(
+		dcl pointX : real := (routeMap(1).endX-routeMap(1).startX)/2;
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		assertTrue(uut.GetPosX() = routeMap(1).startX+pointX);
+	);
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	public Test_TrainIsHalfWay_TrainGetsMoaForNextTrack: () ==> ()
+	Test_TrainIsHalfWay_TrainGetsMoaForNextTrack() ==
+	(
+		uut.Start();
+		uut.Step();
+		uut.Step();
+		uut.Step();
+		assertTrue(routeMap(2) in set uut.GetMovementAuths());
+	);
 	
 	
 end TrainTest
