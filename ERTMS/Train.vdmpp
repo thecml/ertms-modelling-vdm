@@ -3,16 +3,17 @@ instance variables
 	private posX : real;
 	private posY : real;
 	private currentTrack : nat;
-	private route : inmap nat to Interlocking`Track;
+	private route : map nat to Interlocking`Track;
 	private transponders : map Interlocking`Track to Eurobalise;
 	private rbc : RadioBlockCenter;
-	private movementAuths : inmap Interlocking`Track to bool;
+	private movementAuths : map Interlocking`Track to bool;
 	--private maxSpeed : nat;
 	--private speed : nat := 0;
 	private running : bool := false;
 	
-	inv forall x in set {0, ..., card dom route-1}
+	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
+	inv card dom route = card dom transponders;
 	--inv speed > 0 and running = true or speed = 0 and running = false;
 	--inv speed <= maxSpeed;
 	
@@ -28,7 +29,7 @@ operations
 	Drive() ==
 	(
 		-- continue if there is track to traverse
-		if(currentTrack < card dom route) then
+		if(currentTrack < card dom route and running) then
 		(
 			dcl currentEb : Eurobalise := transponders(route(currentTrack));
 			dcl distX : real := route(currentTrack).endX-posX;
@@ -94,18 +95,30 @@ operations
 	(
 		running := false;
 	);
+	
+	public GetPosX: () ==> nat
+	GetPosX() ==
+		return posX;
+		
+	public GetPosY: () ==> nat
+	GetPosY() ==
+		return posY;
+		
+	public IsRunning: () ==> bool
+	IsRunning() ==
+		return running;
 		
 	public Train: map nat to Interlocking`Track
 	* map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
-	 Train(rt,trans,prbc) ==
+	 Train(rtmap,trans,prbc) ==
 	 atomic (
-	 	posX := rt(1).startX;
-	 	posY := rt(1).startY;
+	 	posX := rtmap(1).startX;
+	 	posY := rtmap(1).startY;
 	 	currentTrack := 1;
-	 	route := rt;
+	 	route := rtmap;
 	 	transponders := trans;
 	 	rbc := prbc;
-	 	movementAuths := {|->};
+	 	movementAuths := {x |-> false | x in set rng rtmap};
 	 );
 	 
 functions

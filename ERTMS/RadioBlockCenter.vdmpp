@@ -13,22 +13,22 @@ instance variables
 operations	
 	public RequestMovementAuthority: Interlocking`Track ==> MovementAuthorityReply
 	RequestMovementAuthority(tr) ==
-		if(tr in set responsibleTracks
-		 and {tr} in set availableRoutes)
-		then (
-			dcl msg : Interlocking`Order;
-			def mk_Interlocking`ProceedReply(message,rt) = itl.RequestToProceed({tr})
-			in
-			(
-				msg := message;
-				availableRoutes := rt;
-			);
-			if (msg = <PROCEED_GRANTED>)
+		let rt in set availableRoutes in
+			if(tr in set responsibleTracks and tr in set rt)
 			then (
-				return <MovementAuthorityGranted>;
-			) else (
-				availableRoutes := availableRoutes \ {{tr}};
-				return <MovementAuthorityDenied>;
+				dcl msg : Interlocking`Order;
+				def mk_Interlocking`ProceedReply(message,rt) = itl.RequestToProceed({tr})
+				in
+				(
+					msg := message;
+					availableRoutes := rt;
+				);
+				if (msg = <PROCEED_GRANTED>)
+				then (
+					return <MovementAuthorityGranted>;
+				) else (
+					availableRoutes := availableRoutes \ {{tr}};
+					return <MovementAuthorityDenied>;
 			)
 		) else return <MovementAuthorityDenied>;
 		

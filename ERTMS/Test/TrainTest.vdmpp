@@ -1,0 +1,73 @@
+class TrainTest is subclass of TestCase
+
+values	
+	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
+	mk_Interlocking`Track(15,5,20,5,"BC",110)};
+	
+	routeMap = {1 |-> mk_Interlocking`Track(10,5,15,5,"AB",100),
+	2 |-> mk_Interlocking`Track(15,5,20,5,"BC",110)};
+	
+	track1 = mk_Interlocking`Track(10,5,15,5,"AB",100);
+	track2 = mk_Interlocking`Track(15,5,20,5,"BC",110);
+	
+instance variables
+	private uut: Train;
+	private rbc: RadioBlockCenter;
+	private itl: Interlocking;
+	private eb1 : Eurobalise;
+	private eb2 : Eurobalise;
+	
+operations
+	public TrainTest: () ==> TrainTest
+	TrainTest() ==
+	(	
+		itl := new Interlocking({tracks});
+		eb1 := new Eurobalise(itl, track1);
+		eb2 := new Eurobalise(itl, track2);
+		rbc := new RadioBlockCenter({tracks}, tracks, itl);
+		uut := new Train(routeMap, {track1 |-> eb1, track2 |-> eb2}, rbc);
+	);
+	
+	public Test_CtorCalled_TrainIsCreatedWithStartPos: () ==> ()
+	Test_CtorCalled_TrainIsCreatedWithStartPos() ==
+	(
+		assertTrue(uut.GetPosX() = routeMap(1).startX);
+		assertTrue(uut.GetPosY() = routeMap(1).startY);
+	);
+	
+	public Test_TrackOccupieod_MoADeniedAndTrainStopped: () ==> ()
+	Test_TrackOccupieod_MoADeniedAndTrainStopped() ==
+	(
+		itl.SetTrackState(routeMap(1), <TRAIN_ENTER>);
+		uut.Start();
+		assertTrue(uut.IsRunning());
+		uut.Step();
+		assertFalse(uut.IsRunning());
+	);
+	
+	public Test_TrackFree_TrainGetsMoaAndEntersTrack: () ==> ()
+	Test_TrackFree_TrainGetsMoaAndEntersTrack() ==
+	(
+		uut.Start();
+		uut.Step();
+		-- track is not occupied in ITL
+		assertTrue(itl.GetOccupiedTracks() = {});
+		uut.Step();
+		-- track is now occupied in ITL
+		assertTrue(itl.GetOccupiedTracks() <> {});
+	);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+end TrainTest
