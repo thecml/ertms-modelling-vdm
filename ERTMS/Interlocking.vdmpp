@@ -1,5 +1,13 @@
 class Interlocking
 
+values
+tracks = {mk_Track(10,5,15,5,"AB",100),
+	mk_Track(15,5,20,5,"BC",110),
+	mk_Track(20,5,25,5,"CD",110),
+	mk_Track(25,5,30,5,"DE",110),
+	mk_Track(25,5,30,5,"EF",110)};
+routes = {tracks};
+
 types
 	public Order = <PROCEED_GRANTED> | <PROCEED_DENIED>;
 	public ProceedReply :: message : Order
@@ -19,8 +27,7 @@ instance variables
 	private availableRoutes : set of Route; -- routes not planned to be occupied
 	
 	inv card availableRoutes < 2 or InvNoDuplicateTrack(availableRoutes);
-	inv forall rt in set availableRoutes & forall tr in set rt
-		& tr not in set dom occupiedTracks or occupiedTracks(tr) = false;
+	inv InvNoTrackAvailableAndOccupied(occupiedTracks, availableRoutes);
 	
 operations
 	public RequestToProceed: Route ==> ProceedReply
@@ -95,7 +102,7 @@ operations
 		 )
 
 functions
-	private GetTracksInRoute: set of Route -> set of Track
+	public GetTracksInRoute: set of Route -> set of Track
 	GetTracksInRoute(rts) ==
 	(
 		if (card rts > 0) then
@@ -104,6 +111,12 @@ functions
 				rt
 		) else {}
 	);
+	
+	public InvNoTrackAvailableAndOccupied: map Track to bool * set of Route -> bool
+	InvNoTrackAvailableAndOccupied(trmap, rts) ==
+	-- A track cannot be available and occupied.
+	forall rt in set rts & forall tr in set rt
+		& tr not in set dom trmap or trmap(tr) = false;
 	
 	public InvNoDuplicateTrack: set of Route -> bool
 	InvNoDuplicateTrack(srt) ==
@@ -116,7 +129,49 @@ functions
 				
 	public InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==
-		forall i in set rt & trmap(i) <> false
-		pre card rt > 0;
+		exists i in set rt & if i in set dom trmap
+		 then (trmap(i) = true) else false
+	pre card rt > 0
+
+traces
+T1: let trmap in set {{mk_Track(10,5,15,5,"AB",100) |-> false}} in
+			InvNoTrackAvailableAndOccupied(trmap, routes);
+
+T2: let trmap in set {{mk_Track(10,5,15,5,"AB",100) |-> true}} in
+			InvNoTrackAvailableAndOccupied(trmap, routes);
+			
+T3: let trmap in set {{mk_Track(90,5,90,5,"XX",100) |-> true}} in
+			InvNoTrackAvailableAndOccupied(trmap, routes);
+			
+T4: InvNoDuplicateTrack(routes);
+
+T5: let rts in set {{{mk_Track(5,5,10,5,"AB",100),
+			 mk_Track(2,5,10,5,"BA",100)},
+			  {mk_Track(20,5,10,5,"AB",100),
+			   mk_Track(30,5,10,5,"DE",100)}}} in
+					InvNoDuplicateTrack(rts);
+
+T6: let rts in set {{{mk_Track(5,5,10,5,"AB",100),
+			 mk_Track(5,5,10,5,"BA",100)},
+			  {mk_Track(5,5,10,5,"CD",100),
+			   mk_Track(5,5,10,5,"DE",100)}}} in
+					InvNoDuplicateTrack(rts);
+
+T7: let rt in set {{mk_Track(10,5,15,5,"AB",100), mk_Track(15,5,20,5,"BC",100)},
+				{mk_Track(20,5,25,5,"AB",100), mk_Track(25,5,30,5,"DE",100)}} in
+					let trmap = {mk_Track(10,5,15,5,"AB",100) |-> false} in
+						InvIsTrackOccupied(rt, trmap);
+					
+T8: let rt in set {{mk_Track(10,5,15,5,"AB",100), mk_Track(15,5,20,5,"BC",100)},
+				{mk_Track(20,5,25,5,"CD",100), mk_Track(25,5,30,5,"DE",100)}} in
+					let trmap = {mk_Track(25,5,30,5,"DE",100) |-> true} in
+						InvIsTrackOccupied(rt, trmap);
+					
+T9: let trmap = {mk_Track(10,5,15,5,"AB",100) |-> false} in
+					InvIsTrackOccupied({}, trmap);
+
+
+
+
 		
 end Interlocking

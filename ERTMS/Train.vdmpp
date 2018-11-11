@@ -7,29 +7,26 @@ instance variables
 	private transponders : map Interlocking`Track to Eurobalise;
 	private rbc : RadioBlockCenter;
 	private movementAuths : map Interlocking`Track to bool;
-	--private maxSpeed : nat;
-	--private speed : nat := 0;
-	private running : bool := false;
+	private maxSpeed : real;
+	private speed : real := 0;
+	private started : bool := false;
 	
 	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
 	inv card dom route = card dom transponders;
-	--inv speed > 0 and running = true or speed = 0 and running = false;
-	--inv speed <= maxSpeed;
+	inv started = true and speed >= 0 or started = false and speed = 0;
+	inv speed <= maxSpeed;
 	
 operations
 	public Step: () ==> ()
 	Step() ==
-	(
-		Drive();
-	);
+	( Drive(); );
 	
 	-- Drive() performs one iteration of moving the train
 	private Drive: () ==> ()
 	Drive() ==
-	(
-		-- continue if there is track to traverse
-		if(currentTrack <= card dom route and running) then
+	( -- continue if there is track to traverse
+		if(currentTrack <= card dom route and started) then
 		(
 			dcl currentEb : Eurobalise := transponders(route(currentTrack));
 			dcl distX : real := route(currentTrack).endX-posX;
@@ -39,26 +36,21 @@ operations
 				-- check where the train is currently
 				if (posX = route(currentTrack).startX and posY = route(currentTrack).startY)
 				then (
-					-- dcl dist : nat := MATH`sqrt(((posX-endpx)**2)+((posY-endpy)**2));
-					-- enter track
+					-- enter track and drive halfway
 					currentEb.Enter();
-					-- drive train halfway
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY/2; )
 					else if (distY = 0 and distX <> 0) then ( posX := posX + distX/2; )
 					else if (distY <> 0 and distX <> 0) then
-					(
-						posY := posY + distY/2;
-						posX := posX + distX/2;
-					);
-				) else if (
-					posX = route(currentTrack).endX and posY = route(currentTrack).endY
-				) then (
-					-- move onto next track
+					( posY := posY + distY/2; posX := posX + distX/2; );
+				) else if (posX = route(currentTrack).endX and posY = route(currentTrack).endY)
+				then (
+					-- move onto next track, set max speed
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
+					speed := route(currentTrack).maxSpeed;
+					maxSpeed := route(currentTrack).maxSpeed;
 				) else (
-					-- we are halfway through. request MoA for next track,
-					-- if there is a next track
+					-- we are midway. request MoA for next track, if there is such
 					if (card dom route > currentTrack) then (
 						if(rbc.RequestMovementAuthority(route(currentTrack+1))
 					 		= <MovementAuthorityGranted>) then (
@@ -69,35 +61,30 @@ operations
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
 					else if (distY = 0 and distX <> 0) then ( posX := posX + distX; )
 					else if (distX <> 0 and distY <> 0) then
-					(
-						posY := posY + distY;
-						posX := posX + distX;
-					);
+					( posY := posY + distY; posX := posX + distX; );
 				);
 			) else (
-				if(rbc.RequestMovementAuthority(route(currentTrack))
-				 = <MovementAuthorityGranted>) then (
+				if(rbc.RequestMovementAuthority(route(currentTrack)) = <MovementAuthorityGranted>)
+				then (
 					movementAuths := movementAuths ++ {tr |-> true | tr in set rng route};
-					running := true;
+					started := true;
 				) else (
-					running := false;
+					speed := 0; started := false;
 				)
 			)
 		) else (
-			-- train has reached end of route
-			running := false
+			-- train has reached end of route, shutdown
+			speed := 0; started := false
 		)
 	);
 			
 	public Start: () ==> ()
 	Start() ==
-		running := true;
+		started := true;
 		
 	public Stop: () ==> ()
 	Stop() ==
-	(
-		running := false;
-	);
+		started := false;
 	
 	public GetPosX: () ==> real
 	GetPosX() ==
@@ -107,9 +94,9 @@ operations
 	GetPosY() ==
 		return posY;
 		
-	public IsRunning: () ==> bool
-	IsRunning() ==
-		return running;
+	public IsStarted: () ==> bool
+	IsStarted() ==
+		return started;
 		
 	public GetMovementAuths: () ==> set of Interlocking`Track
 	GetMovementAuths() ==
@@ -121,6 +108,7 @@ operations
 	 atomic (
 	 	posX := rtmap(1).startX;
 	 	posY := rtmap(1).startY;
+	 	maxSpeed := rtmap(1).maxSpeed;
 	 	currentTrack := 1;
 	 	route := rtmap;
 	 	transponders := trans;

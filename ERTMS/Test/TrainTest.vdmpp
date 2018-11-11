@@ -2,13 +2,13 @@ class TrainTest is subclass of TestCase
 
 values
 	tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
-	mk_Interlocking`Track(15,5,20,5,"BC",110)};
+	mk_Interlocking`Track(15,5,20,5,"BC",90)};
 	
 	routeMap = {1 |-> mk_Interlocking`Track(10,5,15,5,"AB",100),
-	2 |-> mk_Interlocking`Track(15,5,20,5,"BC",110)};
+	2 |-> mk_Interlocking`Track(15,5,20,5,"BC",90)};
 	
 	track1 = mk_Interlocking`Track(10,5,15,5,"AB",100);
-	track2 = mk_Interlocking`Track(15,5,20,5,"BC",110);
+	track2 = mk_Interlocking`Track(15,5,20,5,"BC",90);
 	
 instance variables
 	private uut: Train;
@@ -40,9 +40,9 @@ operations
 	(
 		itl.SetTrackState(routeMap(1), <TRAIN_ENTER>);
 		uut.Start();
-		assertTrue(uut.IsRunning());
+		assertTrue(uut.IsStarted());
 		uut.Step();
-		assertFalse(uut.IsRunning());
+		assertFalse(uut.IsStarted());
 	);
 	
 	public Test_TrackFree_TrainGetsMoa: () ==> ()
