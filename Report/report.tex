@@ -1,148 +1,52 @@
-%% This is file `elsarticle-template-1-num.tex',
-%%
-%% Copyright 2009 Elsevier Ltd
-%%
-%% This file is part of the 'Elsarticle Bundle'.
-%% ---------------------------------------------
-%%
-%% It may be distributed under the conditions of the LaTeX Project Public
-%% License, either version 1.2 of this license or (at your option) any
-%% later version.  The latest version of this license is in
-%%    http://www.latex-project.org/lppl.txt
-%% and version 1.2 or later is part of all distributions of LaTeX
-%% version 1999/12/01 or later.
-%%
-%% The list of all files belonging to the 'Elsarticle Bundle' is
-%% given in the file `manifest.txt'.
-%%
-%% Template article for Elsevier's document class `elsarticle'
-%% with numbered style bibliographic references
-%%
-%% $Id: elsarticle-template-1-num.tex 149 2009-10-08 05:01:15Z rishi $
-%% $URL: http://lenova.river-valley.com/svn/elsbst/trunk/elsarticle-template-1-num.tex $
-%%
 \documentclass[preprint,12pt]{elsarticle}
-
-%% Use the option review to obtain double line spacing
-%% \documentclass[preprint,review,12pt]{elsarticle}
-
-%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
-%% for a journal layout:
-%% \documentclass[final,1p,times]{elsarticle}
-%% \documentclass[final,1p,times,twocolumn]{elsarticle}
-%% \documentclass[final,3p,times]{elsarticle}
-%% \documentclass[final,3p,times,twocolumn]{elsarticle}
-%% \documentclass[final,5p,times]{elsarticle}
-%% \documentclass[final,5p,times,twocolumn]{elsarticle}
-
-%% if you use PostScript figures in your article
-%% use the graphics package for simple commands
-%% \usepackage{graphics}
-%% or use the graphicx package for more complicated commands
-%% \usepackage{graphicx}
-%% or use the epsfig package if you prefer to use the old commands
-%% \usepackage{epsfig}
-
-%% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
-%% The amsthm package provides extended theorem environments
-%% \usepackage{amsthm}
-
-%% The lineno packages adds line numbers. Start line numbering with
-%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
-%% for the whole article with \linenumbers after \end{frontmatter}.
 \usepackage{lineno}
-
-%% natbib.sty is loaded by default. However, natbib options can be
-%% provided with \biboptions{...} command. Following options are
-%% valid:
-
-%%   round  -  round parentheses are used (default)
-%%   square -  square brackets are used   [option]
-%%   curly  -  curly braces are used      {option}
-%%   angle  -  angle brackets are used    <option>
-%%   semicolon  -  multiple citations separated by semi-colon
-%%   colon  - same as semicolon, an earlier confusion
-%%   comma  -  separated by comma
-%%   numbers-  selects numerical citations
-%%   super  -  numerical citations as superscripts
-%%   sort   -  sorts multiple citations according to order in ref. list
-%%   sort&compress   -  like sort, but also compresses numerical citations
-%%   compress - compresses without sorting
-%%
-%% \biboptions{comma,round}
-
-% \biboptions{}
-
-
-\journal{Journal Name}
 
 \begin{document}
 
 \begin{frontmatter}
 
-%% Title, authors and addresses
-
-%% use the tnoteref command within \title for footnotes;
-%% use the tnotetext command for the associated footnote;
-%% use the fnref command within \author or \address for footnotes;
-%% use the fntext command for the associated footnote;
-%% use the corref command within \author for corresponding author footnotes;
-%% use the cortext command for the associated footnote;
-%% use the ead command for the email address,
-%% and the form \ead[url] for the home page:
-%%
-%% \title{Title\tnoteref{label1}}
-%% \tnotetext[label1]{}
-%% \author{Name\corref{cor1}\fnref{label2}}
-%% \ead{email address}
-%% \ead[url]{home page}
-%% \fntext[label2]{}
-%% \cortext[cor1]{}
-%% \address{Address\fnref{label3}}
-%% \fntext[label3]{}
-
-\title{Unncessarily Complicated Research Title}
+\title{Modeling and simulation of ERTMS with VDM}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
 %% \address[label1]{<address>}
 %% \address[label2]{<address>}
 
-\author{John Smith (au205409)}
+\author{Christian Marius Lillelund (201408354)}
 
-\address{California, United States}
+\address{School of Engineering, Aarhus University}
 
-\address{Course: 201408354, asdsad}
+\address{Course: E18 - Modeling of Critical Systems}
 
 \begin{abstract}
-%% Text of abstract
-Suspendisse potenti. Suspendisse quis sem elit, et mattis nisl. Phasellus consequat erat eu velit rhoncus non pharetra neque auctor. Phasellus eu lacus quam. Ut ipsum dolor, euismod aliquam congue sed, lobortis et orci. Mauris eget velit id arcu ultricies auctor in eget dolor. Pellentesque suscipit adipiscing sem, imperdiet laoreet dolor elementum ut. Mauris condimentum est sed velit lacinia placerat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nullam diam metus, pharetra vitae euismod sed, placerat ultrices eros. Aliquam tincidunt dapibus venenatis. In interdum tellus nec justo accumsan aliquam. Nulla sit amet massa augue.
+Modeling of critical systems is an important tool in software engineering, as it allows us to design a system
+from specification and verify its properties in a unambiguous way early in the development process. In this report, we use the Vienna Development Method (VDM) to model, simulate and verify a subset of the specifications for the safety-critical European Rail Traffic Management System (ERTMS) level 2 focusing on those properties of ERTMS that concern interlocking of tracks and safety of the trains. In ERTMS, these features are controlled by the European Train Control System (ETCS) component. With VDM, we can perform system design analysis and model verification to catch potential faults early before the system is constructed in an implementation language like Java and deployed to a real system. We start by defining requirements and invariants based on the ERTMS/ETCS specification and then use VDM to design a formal model followed by model-checking. The abstract implementation of ERTMS detailed in this report provide a simple but fundamental understanding of the signaling system's behavior and how to describe its constraints.
 \end{abstract}
 
 \begin{keyword}
-Science \sep Publication \sep Complicated
-%% keywords here, in the form: keyword \sep keyword
-
-%% MSC codes here, in the form: \MSC code \sep code
-%% or \MSC[2008] code \sep code (2000 is the default)
-
+ERTMS \sep ETCS \sep VDM \sep Formal methods \sep Interlocking \sep Safety
 \end{keyword}
 
 \end{frontmatter}
 
-%%
-%% Start line numbering here if you want
-%%
-%%\linenumbers
+\section{Introduction}
+\label{S:introduction}
+The railway domain was identified as a grand challenge of computing science in 2004 because it is understandable by the general public, useful and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
 
-%% main text
-\section{The First Section}
-\label{S:1}
+The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems. Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3. We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MoA) for that section from the RBC, which will be further explained in section X.
 
-Maecenas \cite{Smith:2012qr} fermentum \cite{Smith:2013jd} urna ac sapien tincidunt lobortis. Nunc feugiat faucibus varius. Ut sed purus nunc. Ut eget eros quis lectus mollis pharetra ut in tellus. Pellentesque ultricies velit sed orci pharetra et fermentum lacus imperdiet. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse commodo ultrices mauris, condimentum hendrerit lorem condimentum et. Pellentesque urna augue, semper et rutrum ac, consequat id quam. Proin lacinia aliquet justo, ut suscipit massa commodo sit amet. Proin vehicula nibh nec mauris tempor interdum. Donec orci ante, tempor a viverra vel, volutpat sed orci.
+Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. The train control (EVC) requests movement authorities from the RBC over GSM-R. A typical national rail way will have multiple RBC's for each region. The RBC's communicate with a central interlocking service, that receives the physical location of trains using the Eurobalises, in order to either grant or deny movement authority to a train.
 
-Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque quis interdum velit. Nulla tincidunt sem quis nisi molestie nec hendrerit nulla interdum. Nunc at lectus at neque dapibus dapibus sit amet in massa. Nam ut nisl in diam consectetur dignissim. Sed lacinia diam id nunc suscipit vitae semper lorem semper. In vehicula velit at tortor fringilla elementum aliquam erat blandit. Donec pretium libero et neque vehicula blandit. Curabitur consequat interdum sem at ultrices. Sed at tincidunt metus. Etiam vulputate, lacus eget fermentum posuere, ante mi dignissim augue, et ultrices felis tortor sed nisl.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{ERTMS.png}
+	\caption{An overview of the components in ERTMS/ETCS level 2.}
+	\label{fig:ertmsoverview}
+\end{figure}
+
+
+
 
 \begin{itemize}
 \item Bullet point one
