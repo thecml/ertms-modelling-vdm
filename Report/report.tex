@@ -1,6 +1,9 @@
 \documentclass[preprint,12pt]{elsarticle}
 \usepackage{amssymb}
 \usepackage{lineno}
+\usepackage{fixltx2e}
+\usepackage{hyperref}
+\usepackage{enumitem}
 
 \begin{document}
 
@@ -47,20 +50,28 @@ Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. 
 
 \section{Requirements}
 \label{S:requirements}
-The purpose of the model is to design and verify the interlocking properties and operating rules of the ETCS system, a part of ERTMS. With our model we aim to show how VDM can we used to create and satisfy a subset of the real requirements of ETCS interlocking, abstracting away most of the physical constraints you would have in a real system and focusing on the control mechanisms you find in the RadioBlockCenter and Interlocking components, described in the introduction. Our model should demonstrate a simulated train that interacts with the control system when traversing a set of tracks, as it would in real life, while simultaneously monitoring and adhering to the safety features of the system. We address the following requirements:
+The purpose of the model is to design and verify the interlocking properties and operating rules of the ETCS system, a part of ERTMS. With our model we aim to show how VDM can we used to create and satisfy a subset of the real requirements of ETCS interlocking, abstracting away most of the physical constraints you would have in a real system and focusing on the control mechanisms you find in the RadioBlockCenter and Interlocking components, described in the introduction. Our model should demonstrate a simulated train that interacts with the control system when traversing a set of tracks, as it would in real life, while simultaneously monitoring and adhering to the safety features of the system. We address the following requirements: \\
 
-\begin{itemize}
-	\item R1: A train shall not enter a block section which is occupied by another train (same track).
-	\item R2: A train shall not pass a track boundary without being given a movement authority (MA) to do so.
-	\item R3: A train shall respect the maximum permitted speed of its current track.
-	\item R4: When a train has traversed half of its current track, it shall request a MA for the next track.
-	\item R5: Two trains cannot have a MA for the same track at the same time.
-	\item R6: The system shall not provide an MA for a track that is occupied by a train.
-	\item R7: The RBC shall not answer MA's for tracks it is not responsible for.
-	\item R8: The eurobalise shall report train movement to the interlocking system.
+R1: A train shall not enter a block section which is occupied by another train (same track).\\
+R2: A train shall not pass a track boundary without being given a movement authority (MA) to do so.\\
+R3: A train shall respect the maximum permitted speed of its current track.\\
+R4: When a train has traversed half of its current track, it shall request a MA for the next track.\\
+R5: Two trains cannot have a MA for the same track at the same time.\\
+R6: The system shall not provide an MA for a track that is occupied by a train.\\
+R7: The RBC shall not answer MA's for tracks it is not responsible for.\\
+R8: The eurobalise shall report train movement to the interlocking system.\\
+
+The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature X and X, that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R8}. UML will be used to show some of the logical VDM classes and their relationships. From the specification of ERTMS we can define a typical usage scenario for a train that wishes to enter a track. Given a train \textit{T1}, a track TR1 from a set of tracks (i=1,..,n), an \textit{RBC} responsible for tracks \textit{TR\textsubscript{n}}, a eurobalise \textit{Eb} mounted on the track that registers physical movement and a central interlocking service \textit{ITL}.
+
+\begin{itemize}[noitemsep]
+	\item \textit{T1} wants to enter track \textit{TR1}. \textit{T1} requests MA for \textit{TR1} from RBC.
+	\item RBC contacts the ITL to verify the request.
+	\item RBC grants MA to train \textit{T1} for track TR1.
+	\item \textit{T1} enters track TR1.
+	\item Eb registers movement and informs ITL.
 \end{itemize}
 
-The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature X and X, that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R7}. UML will be used to show some of the logical VDM classes and their relationships.
+This functionality will be further explored in the model architecture and design.
 
 \section{Model architecture}
 \label{S:systemarch}
