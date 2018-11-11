@@ -32,9 +32,8 @@ instance variables
 operations
 	public RequestToProceed: Route ==> ProceedReply
 	RequestToProceed(prt) ==
-		-- if route is in avaliableRoutes and the tracks in the route are not in the doms of trackOccupied
-			-- grant proceed by returning true
-		-- else return false
+		-- if route is in avaliableRoutes and the route tracks are not in the dom of trackOccupied
+			-- grant proceed by returning true, else return false
 		if (card availableRoutes > 0) then (
 			let rt in set availableRoutes in
 				if(prt subset rt and forall tr in set prt & occupiedTracks(tr) = false)
@@ -47,33 +46,33 @@ operations
 
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
-		-- if route is not in routesAvaliable and the tracks are not occupied already,
-		-- then add it to routesAvaliable
-		-- else do nothing				
+		-- if route is not in routesAvaliable and the tracks are not occupied ,
+		-- then add it to routesAvaliable and clear occupiedTracks -- else do nothing				
 		if (rt not in set availableRoutes and
 			forall tr in set rt & tr not in set dom occupiedTracks
 				or occupiedTracks(tr) = false)
-		then (		
-			availableRoutes := availableRoutes union {rt};
-			let tr in set rt
-			in
-				occupiedTracks := occupiedTracks ++ {tr |-> false}
+		then (
+			atomic (		
+				availableRoutes := availableRoutes union {rt};
+				occupiedTracks := occupiedTracks ++ {let tr in set rt in tr |-> false}
+			)
 		) else skip;
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
 		-- set specific track as occupied if train enters.
-		-- if train leaves, clear track and inform RBC.
+		-- if train leaves, clear track
 		if(sta = <TRAIN_ENTER>) then (
 		atomic (
 				occupiedTracks(tr) := true;
 				availableRoutes := {rt | rt in set availableRoutes & rt inter {tr} = {}};
 				)
 			)
-		else if (sta = <TRAIN_LEAVE>)
-			then (
+		else if (sta = <TRAIN_LEAVE>) then (
+		atomic (
 				occupiedTracks := occupiedTracks ++ {tr|->false};
 				availableRoutes := availableRoutes union {{tr}};
+				)
 			)
 		pre tr in set dom occupiedTracks;
 			
@@ -83,20 +82,17 @@ operations
 		
 	public GetAvaliableRoutes: set of Track ==> set of Route
 	GetAvaliableRoutes(trs) ==
-	(
 		return (availableRoutes inter {trs});
-	);
 	
 	public GetOccupiedTracks : () ==> set of Track
 	GetOccupiedTracks() ==
 	(
-		return {tr | tr in set dom occupiedTracks
-			& occupiedTracks(tr) = true};
+		return {tr | tr in set dom occupiedTracks & occupiedTracks(tr) = true};
 	);
 	
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
-		 atomic (
+		atomic (
 			availableRoutes := rts;
 			occupiedTracks := { tr |-> false | tr in set GetTracksInRoute(rts)};
 		 )
@@ -105,11 +101,7 @@ functions
 	public GetTracksInRoute: set of Route -> set of Track
 	GetTracksInRoute(rts) ==
 	(
-		if (card rts > 0) then
-		(
-			let rt in set rts in
-				rt
-		) else {}
+		if (card rts > 0) then (let rt in set rts in rt) else {}
 	);
 	
 	public InvNoTrackAvailableAndOccupied: map Track to bool * set of Route -> bool
@@ -122,10 +114,10 @@ functions
 	InvNoDuplicateTrack(srt) ==
 	-- a route cannot contain the same track twice,
 	-- but two routes can contain the same track
-		forall rt1 in set srt &
-		  forall tr1,tr2 in set rt1 & tr1 <> tr2
-		 		=> tr1.startX <> tr2.startX or tr1.endX <> tr2.endX 
-		 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;
+	forall rt1 in set srt &
+	  forall tr1,tr2 in set rt1 & tr1 <> tr2
+	 		=> tr1.startX <> tr2.startX or tr1.endX <> tr2.endX 
+	 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;
 				
 	public InvIsTrackOccupied: Route * map Track to bool -> bool
 	InvIsTrackOccupied(rt,trmap) ==
@@ -171,7 +163,4 @@ T9: let trmap = {mk_Track(10,5,15,5,"AB",100) |-> false} in
 					InvIsTrackOccupied({}, trmap);
 
 
-
-
-		
 end Interlocking

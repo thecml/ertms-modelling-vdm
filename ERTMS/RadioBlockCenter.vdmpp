@@ -26,10 +26,7 @@ operations
 				dcl msg : Interlocking`Order;
 				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed({tr})
 				in
-				(
-					msg := message;
-					availableRoutes := rtr;
-				);
+				( msg := message; availableRoutes := rtr; );
 				if (msg = <PROCEED_GRANTED>)
 				then (
 					return <MovementAuthorityGranted>;
@@ -39,8 +36,8 @@ operations
 			)
 		) else return <MovementAuthorityDenied>;
 		
-	private UpdateAvailableRoutes: () ==> ()
-	UpdateAvailableRoutes() ==
+	private GetAvailableRoutesFromItl: () ==> ()
+	GetAvailableRoutesFromItl() ==
 		availableRoutes := itl.GetAvaliableRoutes(responsibleTracks);
 		
 	public GetAvailableRoutes: () ==> set of Interlocking`Route
@@ -62,16 +59,20 @@ operations
 	);
 		
 functions
-	public IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track -> bool
+	public IsTrackInSetOfTracks: Interlocking`Track * set of Interlocking`Track
+	 -> bool
 	IsTrackInSetOfTracks(tr,trs) ==
-		tr in set trs;
+		tr in set trs
+	pre card trs > 0;
 
-	public IsTrackInRoute: Interlocking`Track * Interlocking`Route -> bool
+	public IsTrackInRoute: Interlocking`Track * Interlocking`Route
+	 -> bool
 	IsTrackInRoute(tr, rt) ==
 		forall rtt in set rt & tr = rtt
 	pre card rt > 0;
 
-	public IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool -> bool
+	public IsTrackOccupied: Interlocking`Track * map Interlocking`Track to bool
+	 -> bool
 	IsTrackOccupied(tr,routemap) ==
 		routemap(tr) = true
 	pre tr in set dom routemap;

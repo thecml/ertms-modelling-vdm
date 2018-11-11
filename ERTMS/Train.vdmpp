@@ -22,9 +22,9 @@ operations
 	Step() ==
 	( Drive(); );
 	
-	-- Drive() performs one iteration of moving the train
 	private Drive: () ==> ()
 	Drive() ==
+	-- Drive() performs one iteration of moving the train
 	( -- continue if there is track to traverse
 		if(currentTrack <= card dom route and started) then
 		(
@@ -44,7 +44,7 @@ operations
 					( posY := posY + distY/2; posX := posX + distX/2; );
 				) else if (posX = route(currentTrack).endX and posY = route(currentTrack).endY)
 				then (
-					-- move onto next track, set max speed
+					-- leave current track, set max speed
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
 					speed := route(currentTrack).maxSpeed;
@@ -53,8 +53,8 @@ operations
 					-- we are midway. request MoA for next track, if there is such
 					if (card dom route > currentTrack) then (
 						if(rbc.RequestMovementAuthority(route(currentTrack+1))
-					 		= <MovementAuthorityGranted>) then (
-								movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
+							= <MovementAuthorityGranted>) then (
+									movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
 							)
 					);
 					-- drive the remaining way
@@ -64,6 +64,7 @@ operations
 					( posY := posY + distY; posX := posX + distX; );
 				);
 			) else (
+				-- try to get MoA for current track
 				if(rbc.RequestMovementAuthority(route(currentTrack)) = <MovementAuthorityGranted>)
 				then (
 					movementAuths := movementAuths ++ {tr |-> true | tr in set rng route};
