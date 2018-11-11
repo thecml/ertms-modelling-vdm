@@ -6,7 +6,7 @@
 
 \begin{frontmatter}
 
-\title{Modeling and simulation of ERTMS with VDM}
+\title{Modeling and simulating ERTMS/ETCS using VDM}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -32,19 +32,38 @@ ERTMS \sep ETCS \sep VDM \sep Formal methods \sep Interlocking \sep Safety
 
 \section{Introduction}
 \label{S:introduction}
-The railway domain was identified as a grand challenge of computing science in 2004 because it is understandable by the general public, useful and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
+The railway domain was identified as a grand challenge of computing science in 2004 because it is understandable by the general public, provides useful features in terms of transportation and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
 
-The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems. Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3. We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MoA) for that section from the RBC, which will be further explained in section X.
+The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems. Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3. We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MA) for that section from the RBC, which will be further explained in section X. ERTMS defines end of authority (EoA) as the point the train is allowed to move to. We consider this aspect as well.
 
 Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. The train control (EVC) requests movement authorities from the RBC over GSM-R. A typical national rail way will have multiple RBC's for each region. The RBC's communicate with a central interlocking service, that receives the physical location of trains using the Eurobalises, in order to either grant or deny movement authority to a train.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\linewidth]{ERTMS.png}
-	\caption{An overview of the components in ERTMS/ETCS level 2.}
+	\caption{An overview of the ERTMS/ETCS level 2 components.}
 	\label{fig:ertmsoverview}
 \end{figure}
 
+\section{Requirements}
+\label{S:requirements}
+The purpose of the model is to design and verify the interlocking properties and operating rules of the ETCS system, a part of ERTMS. With our model we aim to show how VDM can we used to create and satisfy a subset of the real requirements of ETCS interlocking, abstracting away most of the physical constraints you would have in a real system and focusing on the control mechanisms you find in the RadioBlockCenter and Interlocking components, described in the introduction. Our model should demonstrate a simulated train that interacts with the control system when traversing a set of tracks, as it would in real life, while simultaneously monitoring and adhering to the safety features of the system. We address the following requirements:
+
+\begin{itemize}
+	\item R1: A train shall not enter a block section which is occupied by another train (same track).
+	\item R2: A train shall not pass a track boundary without being given a movement authority (MA) to do so.
+	\item R3: A train shall respect the maximum permitted speed of its current track.
+	\item R4: When a train has traversed half of its current track, it shall request a MA for the next track.
+	\item R5: Two trains cannot have a MA for the same track at the same time.
+	\item R6: The system shall not provide an MA for a track that is occupied by a train.
+	\item R7: The RBC shall not answer MA's for tracks it is not responsible for.
+	\item R8: The eurobalise shall report train movement to the interlocking system.
+\end{itemize}
+
+The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature X and X, that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R7}. UML will be used to show some of the logical VDM classes and their relationships.
+
+\section{Model architecture}
+\label{S:systemarch}
 
 
 
