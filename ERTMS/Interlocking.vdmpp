@@ -26,7 +26,7 @@ instance variables
 	private occupiedTracks : map Track to bool; -- physically occupied track
 	private availableRoutes : set of Route; -- routes not planned to be occupied
 	
-	inv card availableRoutes < 2 or InvNoDuplicateTrack(availableRoutes);
+	inv InvNoDuplicateTrack(availableRoutes);
 	inv InvNoTrackAvailableAndOccupied(occupiedTracks, availableRoutes);
 	
 operations
@@ -60,7 +60,7 @@ operations
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
-		-- set specific track as occupied if train enters.
+		-- if train enters, set specific track as occupied
 		-- if train leaves, clear track
 		if(sta = <TRAIN_ENTER>) then (
 		atomic (

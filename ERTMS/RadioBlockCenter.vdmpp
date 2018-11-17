@@ -15,7 +15,7 @@ instance variables
 	private movementAuthorites : map nat to seq of Interlocking`Track;
 	private itl : Interlocking;
 	
-	inv card availableRoutes < 2 or Interlocking`InvNoDuplicateTrack(availableRoutes);
+	inv Interlocking`InvNoDuplicateTrack(availableRoutes);
 
 operations	
 	public RequestMovementAuthority: Interlocking`Track ==> MovementAuthorityReply

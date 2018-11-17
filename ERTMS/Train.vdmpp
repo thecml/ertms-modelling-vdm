@@ -14,6 +14,8 @@ instance variables
 	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
 	inv card dom route = card dom transponders;
+	inv forall tr in set rng route &
+	 tr.startX > 0 and tr.startY > 0 and tr.endX > 0 and tr.endY > 0;
 	inv started = true and speed >= 0 or started = false and speed = 0;
 	inv speed <= maxSpeed;
 	
