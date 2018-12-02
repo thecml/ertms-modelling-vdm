@@ -71,7 +71,7 @@ operations
 					started := true;
 				) else (
 				-- could not get MoA. Stopping ...
-					speed := 0; started := false;
+					speed := 0;
 				)
 			)
 		) else (

@@ -1,0 +1,76 @@
+class World
+
+values
+	--First upper part of route
+	private track1 = mk_Interlocking`Track(10,10,15,10,"U-AB",100);
+	private track2 = mk_Interlocking`Track(15,10,20,10,"U-BC",100);
+	private track3 = mk_Interlocking`Track(20,10,17,7,"U-CD",50);
+	
+	--First lower part of route
+	private track4 = mk_Interlocking`Track(10,5,15,5,"L-AB",100);
+	private track5 = mk_Interlocking`Track(15,5,20,5,"L-BC",100);
+	private track6 = mk_Interlocking`Track(20,5,17,7,"L-CD",50);
+	
+	--Bridge
+	private track7 = mk_Interlocking`Track(17,7,25,7,"B-AB",10);
+	
+	--Last upper part of route
+	private track8 = mk_Interlocking`Track(25,7,28,10,"U-DE",90);
+	private track9 = mk_Interlocking`Track(28,10,35,10, "U-EF",90);
+	
+	--Last lower part of route
+	private track10 = mk_Interlocking`Track(25,7,28,5,"L-DE", 90);
+	private track11 = mk_Interlocking`Track(28,5,33,5,"L-EF", 90);
+	
+	--route set containing all tracks
+	private route = {track1, track2, track3, track4, track5,
+	track6, track7, track8, track9, track10, track11};
+	
+	--global interlocking system for all routes
+	private itl = new Interlocking({});
+	
+	--global controller for itl
+	private controller = new Controller([route], itl);
+	
+	--global radioblockcenter
+	private rbc = new RadioBlockCenter({route}, route, itl);
+		
+	-- Eurobalise maps for each train
+	private trackEbMap1 = {track1 |-> new Eurobalise(itl, track1), track2 |-> new Eurobalise(itl, track2),
+	track3 |-> new Eurobalise(itl, track3), track7 |-> new Eurobalise(itl, track7),
+	track8 |-> new Eurobalise(itl, track8), track9 |-> new Eurobalise(itl, track9)};
+	
+	private trackEbMap2 = {track4 |-> new Eurobalise(itl, track4), track5 |-> new Eurobalise(itl, track5),
+	track6 |-> new Eurobalise(itl, track6), track7 |-> new Eurobalise(itl, track7),
+	track10 |-> new Eurobalise(itl, track10), track11 |-> new Eurobalise(itl, track11)};
+	
+	-- Route maps for each train
+	routeMap1 = {1 |-> track1, 2 |-> track2, 3 |-> track3,
+	4 |-> track7, 5 |-> track8, 6 |-> track9};
+	routeMap2 = {1 |-> track4, 2 |-> track5, 3 |-> track6,
+	4 |-> track7, 5 |-> track10, 6 |-> track11};
+
+	private trains: seq of Train = [new Train(routeMap1, trackEbMap1, rbc),
+																 new Train(routeMap2, trackEbMap2, rbc)];
+																 											 
+instance variables
+	
+operations
+    public World: () ==> World
+           World() == InitialiseSystem();
+           
+    private InitialiseSystem: () ==> ()
+            InitialiseSystem() ==
+            (
+            	skip;   
+            );
+            
+            
+            
+            
+            
+    private Print: seq of char ==> ()
+            Print(msg) ==
+            	IO`print(msg);
+            	    	
+end World
