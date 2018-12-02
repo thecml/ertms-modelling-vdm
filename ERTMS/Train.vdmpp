@@ -46,7 +46,7 @@ operations
 					( posY := posY + distY/2; posX := posX + distX/2; );
 				) else if (posX = route(currentTrack).endX and posY = route(currentTrack).endY)
 				then (
-					-- leave current track, set max speed
+					-- leave current track, adjust speed to next track
 					currentEb.Leave();
 					currentTrack := currentTrack+1;
 					speed := route(currentTrack).maxSpeed;
@@ -54,10 +54,8 @@ operations
 				) else (
 					-- we are midway. request MoA for next track, if there is such
 					if (card dom route > currentTrack) then (
-						if(rbc.RequestMovementAuthority(route(currentTrack+1))
-							= <MovementAuthorityGranted>) then (
-									movementAuths := movementAuths munion {tr |-> true | tr in set rng route};
-							)
+						if(rbc.RequestMovementAuthority(route(currentTrack+1)) = <MovementAuthorityGranted>)
+						 then ( movementAuths := movementAuths munion {tr |-> true | tr in set rng route}; )
 					);
 					-- drive the remaining way
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
@@ -66,17 +64,18 @@ operations
 					( posY := posY + distY; posX := posX + distX; );
 				);
 			) else (
-				-- try to get MoA for current track
+				-- get MoA for current track
 				if(rbc.RequestMovementAuthority(route(currentTrack)) = <MovementAuthorityGranted>)
 				then (
 					movementAuths := movementAuths ++ {tr |-> true | tr in set rng route};
 					started := true;
 				) else (
+				-- could not get MoA. Stopping ...
 					speed := 0; started := false;
 				)
 			)
 		) else (
-			-- train has reached end of route, shutdown
+			-- train has reached end of route, stop
 			speed := 0; started := false
 		)
 	);
