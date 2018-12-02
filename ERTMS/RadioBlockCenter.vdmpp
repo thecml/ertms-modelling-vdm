@@ -20,6 +20,7 @@ instance variables
 operations	
 	public RequestMovementAuthority: Interlocking`Track ==> MovementAuthorityReply
 	RequestMovementAuthority(tr) ==
+	if (card availableRoutes > 1) then
 		let rt in set availableRoutes in
 			if(tr in set responsibleTracks and tr in set rt)
 			then (
@@ -34,7 +35,8 @@ operations
 					availableRoutes := {rt | art in set availableRoutes & art inter {tr} = {}};
 					return <MovementAuthorityDenied>;
 			)
-		) else return <MovementAuthorityDenied>;
+		) else return <MovementAuthorityDenied>
+		else return <MovementAuthorityDenied>;
 		
 	private GetAvailableRoutesFromItl: () ==> ()
 	GetAvailableRoutesFromItl() ==

@@ -64,7 +64,7 @@ operations
 		-- if train leaves, clear track
 		if(sta = <TRAIN_ENTER>) then (
 		atomic (
-				occupiedTracks(tr) := true;
+				occupiedTracks := occupiedTracks ++ {tr |-> true};
 				availableRoutes := {rt | rt in set availableRoutes & rt inter {tr} = {}};
 				)
 			)
@@ -74,7 +74,7 @@ operations
 				availableRoutes := availableRoutes union {{tr}};
 				)
 			)
-		pre tr in set dom occupiedTracks;
+		post tr in set dom occupiedTracks;
 			
 	public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==

@@ -22,18 +22,20 @@ values
 	private track10 = mk_Interlocking`Track(25,7,28,5,"L-DE", 90);
 	private track11 = mk_Interlocking`Track(28,5,33,5,"L-EF", 90);
 	
-	--route set containing all tracks
-	private route = {track1, track2, track3, track4, track5,
-	track6, track7, track8, track9, track10, track11};
+	--two routes
+	private route1 = {track1, track2, track3, track7, track8, track9};
+	private route2 = {track4, track5, track6, track7, track10, track11};
+	private allTracks = {track1, track2, track3, track4, track5, track6,
+	track7, track8, track9, track10, track11};
 	
 	--global interlocking system for all routes
 	private itl = new Interlocking({});
 	
 	--global controller for itl
-	private controller = new Controller([route], itl);
+	private controller = new Controller([route1, route2], itl);
 	
 	--global radioblockcenter
-	private rbc = new RadioBlockCenter({route}, route, itl);
+	private rbc = new RadioBlockCenter({route1, route2}, allTracks, itl);
 		
 	-- Eurobalise maps for each train
 	private trackEbMap1 = {track1 |-> new Eurobalise(itl, track1), track2 |-> new Eurobalise(itl, track2),
@@ -45,11 +47,12 @@ values
 	track10 |-> new Eurobalise(itl, track10), track11 |-> new Eurobalise(itl, track11)};
 	
 	-- Route maps for each train
-	routeMap1 = {1 |-> track1, 2 |-> track2, 3 |-> track3,
+	private routeMap1 = {1 |-> track1, 2 |-> track2, 3 |-> track3,
 	4 |-> track7, 5 |-> track8, 6 |-> track9};
-	routeMap2 = {1 |-> track4, 2 |-> track5, 3 |-> track6,
+	private routeMap2 = {1 |-> track4, 2 |-> track5, 3 |-> track6,
 	4 |-> track7, 5 |-> track10, 6 |-> track11};
 
+	-- Trains have different routes, but same RBC
 	private trains: seq of Train = [new Train(routeMap1, trackEbMap1, rbc),
 																 new Train(routeMap2, trackEbMap2, rbc)];
 																 											 
@@ -62,15 +65,30 @@ operations
     private InitialiseSystem: () ==> ()
             InitialiseSystem() ==
             (
-            	skip;   
+            	for train in trains do train.Start();
+            	controller.Step();
+            	controller.Step();
+            	controller.Step();
+            	controller.Step();
+							controller.Step();
             );
             
-            
-            
-            
-            
+    public Run: nat ==> ()
+    			 Run(stepLimit) ==
+            	for all step in set { 1, ..., stepLimit } do
+              (
+              	controller.Step();
+                Print("Step: " ^ VDMUtil`val2seq_of_char[nat](step));
+                for train in trains do
+                (
+                	train.Step();
+                	Print("Train at: " ^ VDMUtil`val2seq_of_char[real](train.GetPosX())
+                	 ^ "-" ^ VDMUtil`val2seq_of_char[real](train.GetPosY()));
+                )
+               );       
+                    
     private Print: seq of char ==> ()
-            Print(msg) ==
-            	IO`print(msg);
+            Print(text) ==
+            	def - = new IO().echo(text ^ "\n") in skip;
             	    	
 end World
