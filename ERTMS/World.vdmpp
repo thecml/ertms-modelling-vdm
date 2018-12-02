@@ -53,8 +53,8 @@ values
 	4 |-> track7, 5 |-> track10, 6 |-> track11};
 
 	-- Trains have different routes, but same RBC
-	private trains: seq of Train = [new Train(routeMap1, trackEbMap1, rbc),
-																 new Train(routeMap2, trackEbMap2, rbc)];
+	private trains: seq of Train = [new Train(routeMap1, trackEbMap1, rbc, "IC1"),
+																		new Train(routeMap2, trackEbMap2, rbc, "IC2")];
 																 											 
 instance variables
 	
@@ -82,7 +82,8 @@ operations
                 for train in trains do
                 (
                 	train.Step();
-                	Print("Train at: " ^ VDMUtil`val2seq_of_char[real](train.GetPosX())
+                	Print("Train " ^ VDMUtil`val2seq_of_char[seq of char](train.GetId())
+                	 ^ " at: " ^ VDMUtil`val2seq_of_char[real](train.GetPosX())
                 	 ^ "-" ^ VDMUtil`val2seq_of_char[real](train.GetPosY()));
                 )
                );       

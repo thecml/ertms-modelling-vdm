@@ -25,7 +25,7 @@ operations
 		eb1 := new Eurobalise(itl, track1);
 		eb2 := new Eurobalise(itl, track2);
 		rbc := new RadioBlockCenter({tracks}, tracks, itl);
-		uut := new Train(routeMap, {track1 |-> eb1, track2 |-> eb2}, rbc);
+		uut := new Train(routeMap, {track1 |-> eb1, track2 |-> eb2}, rbc, "IC1");
 	);
 	
 	public Test_CtorCalled_TrainIsCreatedWithStartPos: () ==> ()
@@ -35,14 +35,14 @@ operations
 		assertTrue(uut.GetPosY() = routeMap(1).startY);
 	);
 	
-	public Test_TrackOccupieod_MoADeniedAndTrainStopped: () ==> ()
-	Test_TrackOccupieod_MoADeniedAndTrainStopped() ==
+	public Test_TrackOccupieod_MoADeniedAndTrainStandingStill: () ==> ()
+	Test_TrackOccupieod_MoADeniedAndTrainStandingStill() ==
 	(
 		itl.SetTrackState(routeMap(1), <TRAIN_ENTER>);
 		uut.Start();
 		assertTrue(uut.IsStarted());
 		uut.Step();
-		assertFalse(uut.IsStarted());
+		assertTrue(uut.GetSpeed() = 0);
 	);
 	
 	public Test_TrackFree_TrainGetsMoa: () ==> ()

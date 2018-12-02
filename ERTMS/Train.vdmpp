@@ -7,9 +7,9 @@ instance variables
 	private transponders : map Interlocking`Track to Eurobalise;
 	private rbc : RadioBlockCenter;
 	private movementAuths : map Interlocking`Track to bool;
-	private maxSpeed : real;
 	private speed : real := 0;
 	private started : bool := false;
+	private id : seq of char := "";
 	
 	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
@@ -17,7 +17,7 @@ instance variables
 	inv forall tr in set rng route &
 	 tr.startX > 0 and tr.startY > 0 and tr.endX > 0 and tr.endY > 0;
 	inv started = true and speed >= 0 or started = false and speed = 0;
-	inv speed <= maxSpeed;
+	inv speed <= route(currentTrack).maxSpeed;
 	
 operations
 	public Step: () ==> ()
@@ -48,9 +48,12 @@ operations
 				then (
 					-- leave current track, adjust speed to next track
 					currentEb.Leave();
-					currentTrack := currentTrack+1;
-					speed := route(currentTrack).maxSpeed;
-					maxSpeed := route(currentTrack).maxSpeed;
+					if(currentTrack+1 < card dom route) then
+					atomic (
+						speed := route(currentTrack+1).maxSpeed;
+						currentTrack := currentTrack+1;
+					) else
+						speed := 0;
 				) else (
 					-- we are midway. request MoA for next track, if there is such
 					if (card dom route > currentTrack) then (
@@ -95,6 +98,14 @@ operations
 	public GetPosY: () ==> real
 	GetPosY() ==
 		return posY;
+	
+	public GetSpeed: () ==> real
+	GetSpeed() ==
+		return speed;
+	
+	public GetId: () ==> seq of char
+	GetId() ==
+		return id;
 		
 	public IsStarted: () ==> bool
 	IsStarted() ==
@@ -105,17 +116,17 @@ operations
 		return {tr | tr in set dom movementAuths & movementAuths(tr) = true};
 		
 	public Train: map nat to Interlocking`Track
-	* map Interlocking`Track to Eurobalise * RadioBlockCenter ==> Train
-	 Train(rtmap,trans,prbc) ==
+	* map Interlocking`Track to Eurobalise * RadioBlockCenter * seq of char ==> Train
+	 Train(rtmap,trans,prbc, pid) ==
 	 atomic (
 	 	posX := rtmap(1).startX;
 	 	posY := rtmap(1).startY;
-	 	maxSpeed := rtmap(1).maxSpeed;
 	 	currentTrack := 1;
 	 	route := rtmap;
 	 	transponders := trans;
 	 	rbc := prbc;
 	 	movementAuths := {x |-> false | x in set rng rtmap};
+	 	id := pid;
 	 );
 	 
 functions
