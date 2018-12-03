@@ -18,9 +18,8 @@ instance variables
 	private started : bool := false;
 	private id : seq of char := "";
 	private state: State := <Stopped>;
-	
-	private routeNo: nat := 0;
-	private timetable: map nat to Interlocking`Route;
+
+	private timetable: seq of Interlocking`Route;
 	private trainLog: seq of TrainLogEntry;
 	--private currentRoute: Interlocking`Route;
 	
@@ -39,33 +38,39 @@ operations
 	    Drive();
 	 );
 	 
-	 private Move: () ==> ()
-	 Move() ==
+	 private Drive: () ==> ()
+	 Drive() ==
 	 (
-		if (state = <Running> and routeNo < card dom timetable) then (
-			UpdateStats(id, state, posX, posY);
-			if(rbc.RequestMovementAuthority(timetable(routeNo)) = <MovementAuthorityGranted>)
+		if (state = <Running> and len timetable > 0) then (
+			dcl currentRoute : Interlocking`Route := hd timetable;
+			UpdateStats();
+			if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
 			then (
-					dcl currentRoute : Interlocking`Route := timetable(1);
-					UpdateStats(id, state, posX, posY);
+					UpdateStats();
 					for track in GetTracksInRoute(currentRoute) do (
 						dcl currentEb : Eurobalise := transponders(track);
 						currentEb.Enter();
 						speed := track.maxSpeed;
 						posX := track.endX;
 						posY := track.endY;
-						UpdateStats(id, state, posX, posY);
-					)	
+						UpdateStats();
+					);
+					timetable := tl timetable;
+					UpdateStats();
 			) else (
 				state := <Stopped>;
-				UpdateStats(id, state, posX, posY);
+				UpdateStats();
 			)
-		) else UpdateStats(id, state, posX, posY);
+		) else UpdateStats();
 	 );
 	 
-	 private UpdateStats: seq of char * State * real * real ==> ()
-	 UpdateStats(id, state, posX, posY) ==
+	 private UpdateStats: () ==> ()
+	 UpdateStats() ==
 	 	trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
+	 	
+	 public AddRoute: Interlocking`Route ==> ()
+	 AddRoute(rt) ==
+	 	timetable := timetable ^ [rt];
 	 	
 	 public GetStats: () ==> seq of TrainLogEntry
 	 GetStats() ==
@@ -80,73 +85,14 @@ operations
 				trs := trs ^ [tr];
 			return trs;
 		) else return [];
-	
-	private Drive: () ==> ()
-	Drive() ==
-	-- Drive() performs one iteration of moving the train
-	( -- continue if there is track to traverse
-		if(currentTrack <= card dom route and started) then
-		(
-			dcl currentEb : Eurobalise := transponders(route(currentTrack));
-			dcl distX : real := route(currentTrack).endX-posX;
-			dcl distY : real := route(currentTrack).endY-posY;
-			-- make sure we have MoA for current track
-			if (movementAuths(route(currentTrack))) then (
-				-- check where the train is currently
-				if (posX = route(currentTrack).startX and posY = route(currentTrack).startY)
-				then (
-					-- enter track and drive halfway
-					currentEb.Enter();
-					if (distX = 0 and distY <> 0) then ( posY := posY + distY/2; )
-					else if (distY = 0 and distX <> 0) then ( posX := posX + distX/2; )
-					else if (distY <> 0 and distX <> 0) then
-					( posY := posY + distY/2; posX := posX + distX/2; );
-				) else if (posX = route(currentTrack).endX and posY = route(currentTrack).endY)
-				then (
-					-- leave current track, adjust speed to next track
-					currentEb.Leave();
-					if(currentTrack+1 < card dom route) then
-					atomic (
-						speed := route(currentTrack+1).maxSpeed;
-						currentTrack := currentTrack+1;
-					) else
-						speed := 0;
-				) else (
-					-- we are midway. request MoA for next track, if there is such
-					if (card dom route > currentTrack) then (
-						if(rbc.RequestMovementAuthority(route(currentTrack+1)) = <MovementAuthorityGranted>)
-						 then ( movementAuths := movementAuths ++ {route(currentTrack) |-> true}; )
-					);
-					-- drive the remaining way
-					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
-					else if (distY = 0 and distX <> 0) then ( posX := posX + distX; )
-					else if (distX <> 0 and distY <> 0) then
-					( posY := posY + distY; posX := posX + distX; );
-				);
-			) else (
-				-- get MoA for current track
-				if(rbc.RequestMovementAuthority(route(currentTrack)) = <MovementAuthorityGranted>)
-				then (
-					movementAuths := movementAuths ++ {route(currentTrack) |-> true};
-					started := true;
-				) else (
-				-- could not get MoA. Stopping ...
-					speed := 0;
-				)
-			)
-		) else (
-			-- train has reached end of route, stop
-			speed := 0; started := false
-		)
-	);
 			
 	public Start: () ==> ()
 	Start() ==
-		started := true;
+		state := <Running>;
 		
 	public Stop: () ==> ()
 	Stop() ==
-		started := false;
+		state := <Stopped>;
 	
 	public GetPosX: () ==> real
 	GetPosX() ==
@@ -164,13 +110,14 @@ operations
 	GetId() ==
 		return id;
 		
-	public GetTrack: () ==> Interlocking`Track
-	GetTrack() ==
-		return route(currentTrack);
+	public GetRoute: () ==> Interlocking`Route
+	GetRoute() ==
+		return hd timetable;
 		
-	public IsStarted: () ==> bool
-	IsStarted() ==
-		return started;
+	public IsRunning: () ==> bool
+	IsRunning() ==
+		if state = <Running> then return true
+		else return false;
 		
 	public GetMovementAuths: () ==> set of Interlocking`Track
 	GetMovementAuths() ==
