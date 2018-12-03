@@ -66,9 +66,9 @@ operations
 	(
 		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
 		uut.SetTrackState(track, <TRAIN_ENTER>);
-		assertTrue(track in set uut.GetOccupiedTracks());
+		assertTrue(track in set uut.GetTrackTable());
 		uut.SetTrackState(track, <TRAIN_LEAVE>);
-		assertTrue(track not in set uut.GetOccupiedTracks());
+		assertTrue(track not in set uut.GetTrackTable());
 	);
 	
 	public Test_TrainLeavesTrack_TrackNotOccupied: () ==> ()
@@ -77,7 +77,7 @@ operations
 		dcl tr : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
 		uut.SetTrackState(tr, <TRAIN_ENTER>);
 		uut.SetTrackState(tr, <TRAIN_LEAVE>);
-		assertTrue(tr not in set uut.GetOccupiedTracks());
+		assertTrue(tr not in set uut.GetTrackTable());
 	);
 	
 	public Test_RouteHasNoDuplicateTrack_InvSucceed: () ==> ()

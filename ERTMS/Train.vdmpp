@@ -1,4 +1,7 @@
 class Train	
+types
+	public State = <Running> | <Stopped> | <WaitingForMoa> | <Finished>;
+
 instance variables
 	private posX : real;
 	private posY : real;
@@ -10,6 +13,7 @@ instance variables
 	private speed : real := 0;
 	private started : bool := false;
 	private id : seq of char := "";
+	private state: State := <Stopped>;
 	
 	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
@@ -22,11 +26,30 @@ instance variables
 operations
 	public Step: () ==> ()
 	Step() ==
-	( Drive(); );
+	( 
+	    Drive();
+      UpdateRecentStates();
+	 );
+	 
+	 private Move: () ==> ()
+	 Move() ==
+	 (
+		if (state = <Started>) (
+			dcl currentEb : Eurobalise := transponders(route(currentTrack));				
+		
+		
+		
+		)
+	 );
+	 
+	 private UpdateStats: () ==> ()
+	 UpdateStats() ==
+	 	skip;
 	
 	private Drive: () ==> ()
 	Drive() ==
 	-- Drive() performs one iteration of moving the train
+
 	( -- continue if there is track to traverse
 		if(currentTrack <= card dom route and started) then
 		(
@@ -58,7 +81,7 @@ operations
 					-- we are midway. request MoA for next track, if there is such
 					if (card dom route > currentTrack) then (
 						if(rbc.RequestMovementAuthority(route(currentTrack+1)) = <MovementAuthorityGranted>)
-						 then ( movementAuths := movementAuths munion {tr |-> true | tr in set rng route}; )
+						 then ( movementAuths := movementAuths ++ {route(currentTrack) |-> true}; )
 					);
 					-- drive the remaining way
 					if (distX = 0 and distY <> 0) then ( posY := posY + distY; )
@@ -70,7 +93,7 @@ operations
 				-- get MoA for current track
 				if(rbc.RequestMovementAuthority(route(currentTrack)) = <MovementAuthorityGranted>)
 				then (
-					movementAuths := movementAuths ++ {tr |-> true | tr in set rng route};
+					movementAuths := movementAuths ++ {route(currentTrack) |-> true};
 					started := true;
 				) else (
 				-- could not get MoA. Stopping ...
@@ -106,6 +129,10 @@ operations
 	public GetId: () ==> seq of char
 	GetId() ==
 		return id;
+		
+	public GetTrack: () ==> Interlocking`Track
+	GetTrack() ==
+		return route(currentTrack);
 		
 	public IsStarted: () ==> bool
 	IsStarted() ==

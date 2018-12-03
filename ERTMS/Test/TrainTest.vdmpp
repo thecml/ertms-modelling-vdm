@@ -60,10 +60,10 @@ operations
 		uut.Start();
 		uut.Step();
 		-- track is not occupied in ITL
-		assertTrue(itl.GetOccupiedTracks() = {});
+		assertTrue(itl.GetTrackTable() = {});
 		uut.Step();
 		-- track is now occupied in ITL
-		assertTrue(routeMap(1) in set itl.GetOccupiedTracks());
+		assertTrue(routeMap(1) in set itl.GetTrackTable());
 	);
 	
 	public Test_TrackFree_TrainGetsMoaAndDrivesHalfWay: () ==> ()
@@ -105,7 +105,7 @@ operations
 		uut.Step();
 		uut.Step();
 		uut.Step();
-		assertTrue(routeMap(1) not in set itl.GetOccupiedTracks());
+		assertTrue(routeMap(1) not in set itl.GetTrackTable());
 	);
 	
 	public Test_TrainIsAtTheEnd_EntersNewTrack: () ==> ()
@@ -117,7 +117,7 @@ operations
 		uut.Step();
 		uut.Step();
 		uut.Step();
-		assertTrue(routeMap(2) in set itl.GetOccupiedTracks());
+		assertTrue(routeMap(2) in set itl.GetTrackTable());
 	);
 	
 	public Test_TrainAtNextTrack_TrainDrivesToEnd: () ==> ()

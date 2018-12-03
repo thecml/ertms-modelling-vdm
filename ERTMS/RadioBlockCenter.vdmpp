@@ -20,28 +20,23 @@ instance variables
 operations	
 	public RequestMovementAuthority: Interlocking`Track ==> MovementAuthorityReply
 	RequestMovementAuthority(tr) ==
-	if (card availableRoutes > 0) then
 	(
-		dcl trs: set of Interlocking`Track := {let t in set rt in t | rt in set availableRoutes};
-		if(tr in set responsibleTracks and tr in set trs)
-			then (
-					dcl msg : Interlocking`Order;
-					def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed({tr})
-					in
-						(
-						msg := message; availableRoutes := rtr; );
-						if (msg = <PROCEED_GRANTED>)
-							then ( return <MovementAuthorityGranted>; )
-					 	else (
-					availableRoutes := {{tr} | art in set availableRoutes & art inter {tr} = {}};
-					return <MovementAuthorityDenied>;
+		--dcl trs: set of Interlocking`Track := {let t in set rt in t | rt in set availableRoutes};
+		--if(tr in set responsibleTracks and tr in set trs)
+		if(tr in set responsibleTracks) then (
+				dcl msg : Interlocking`Order;
+				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed({tr})
+				in (
+					msg := message;
+					availableRoutes := rtr; );
+					if (msg = <PROCEED_GRANTED>)
+						then ( return <MovementAuthorityGranted>; )
+				 	else (
+				--availableRoutes := {{tr} | art in set availableRoutes & art inter {tr} = {}};
+				return <MovementAuthorityDenied>;
 				)
 		) else return <MovementAuthorityDenied>;
-	) else return <MovementAuthorityDenied>;
-		
-	private GetAvailableRoutesFromItl: () ==> ()
-	GetAvailableRoutesFromItl() ==
-		availableRoutes := itl.GetAvaliableRoutes(responsibleTracks);
+	);
 		
 	public GetAvailableRoutes: () ==> set of Interlocking`Route
 	GetAvailableRoutes() ==
