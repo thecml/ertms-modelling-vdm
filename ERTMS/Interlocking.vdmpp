@@ -23,87 +23,97 @@ types
 												 rt : Route
 										
 instance variables
-	private occupiedTracks : map Track to bool; -- physically occupied track
-	private availableRoutes : set of Route; -- routes not planned to be occupied
+	private trackTable : map Track to bool; -- track table with physical state of track
+	private availableRoutes : set of Route; -- routes from controller to be used
 	
 	inv InvNoDuplicateTrack(availableRoutes);
-	inv InvNoTrackAvailableAndOccupied(occupiedTracks, availableRoutes);
+--	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
 	
 operations
-	public RequestToProceed: Route ==> ProceedReply
-	RequestToProceed(prt) ==
+	public RequestToProceed: Route * set of Track ==> ProceedReply
+	RequestToProceed(prt, respTrs) ==
 		-- if route is in avaliableRoutes and the route tracks are not in the dom of trackOccupied
 			-- grant proceed by returning true, else return false
 		if (card availableRoutes > 0) then (
-			let rt in set availableRoutes in
-				if(prt subset rt and forall tr in set prt & occupiedTracks(tr) = false)
-					then return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes)
-			else return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes)
+			if(exists rt in set availableRoutes
+			 & prt subset rt and forall tr in set prt
+			  & tr in set dom trackTable) then
+					if(forall tr in set prt & trackTable(tr) = false) then (
+						availableRoutes := {rts | rts in set availableRoutes
+						 & forall ptrs in set {prt} & rts inter ptrs = {}};
+						 return ProceedGranted(respTrs);
+					)
+					else
+						return ProceedDenied(respTrs)
+			else return ProceedDenied(respTrs)
 			) else (
-				return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes);
+				return ProceedDenied(respTrs)
 			)
 	pre card prt > 0;
-
+	
+	private ProceedGranted: set of Track ==> ProceedReply
+	ProceedGranted(respTrs) ==
+		return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes inter {respTrs});
+		
+	private ProceedDenied: set of Track ==> ProceedReply
+	ProceedDenied(respTrs) ==
+		return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes inter {respTrs});
+	
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied ,
-		-- then add it to routesAvaliable and clear occupiedTracks -- else do nothing				
+		-- then add it to routesAvaliable and clear trackTable -- else do nothing	
 		if (rt not in set availableRoutes and
-			forall tr in set rt & tr not in set dom occupiedTracks
-				or occupiedTracks(tr) = false)
-		then (
-			atomic (		
-				availableRoutes := availableRoutes union {rt};
-				occupiedTracks := occupiedTracks ++ {let tr in set rt in tr |-> false}
-			)
-		) else skip;
+			forall tr in set rt & tr not in set dom trackTable
+				or trackTable(tr) = false)
+					then (
+							availableRoutes := availableRoutes union {rt};
+							trackTable := trackTable ++ { tr |-> false | tr in set GetTracksInRoutes({rt})};	
+					) else skip;	
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
 		-- if train enters, set specific track as occupied
 		-- if train leaves, clear track
-		if(sta = <TRAIN_ENTER>) then (
-		atomic (
-				occupiedTracks := occupiedTracks ++ {tr |-> true};
-				availableRoutes := {rt | rt in set availableRoutes & rt inter {tr} = {}};
-				)
-			)
-		else if (sta = <TRAIN_LEAVE>) then (
-		atomic (
-				occupiedTracks := occupiedTracks ++ {tr|->false};
-				availableRoutes := availableRoutes union {{tr}};
-				)
-			)
-		post tr in set dom occupiedTracks;
+		if(sta = <TRAIN_ENTER>) then
+				trackTable := trackTable ++ {tr |-> true}
+		else if (sta = <TRAIN_LEAVE>) then
+				trackTable := trackTable ++ {tr |-> false}
+		post tr in set dom trackTable;
 			
-	public GetAvaliableRoutes: () ==> set of Route
+	pure public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==
 		return availableRoutes;
 		
-	public GetAvaliableRoutes: set of Track ==> set of Route
+	pure public GetAvaliableRoutes: set of Track ==> set of Route
 	GetAvaliableRoutes(trs) ==
 		return (availableRoutes inter {trs});
 	
-	public GetOccupiedTracks : () ==> set of Track
-	GetOccupiedTracks() ==
+	pure public GetTrackTable : () ==> set of Track
+	GetTrackTable() ==
 	(
-		return {tr | tr in set dom occupiedTracks & occupiedTracks(tr) = true};
+		return {tr | tr in set dom trackTable & trackTable(tr) = true};
 	);
 	
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
 		atomic (
 			availableRoutes := rts;
-			occupiedTracks := { tr |-> false | tr in set GetTracksInRoute(rts)};
-		 )
-
+			trackTable := { tr |-> false | tr in set GetTracksInRoutes(rts)};
+		 );
+		 
+	pure public GetTracksInRoutes: set of Route ==> set of Track
+	GetTracksInRoutes(rts) ==
+		if (card rts > 0) then
+		(
+			dcl trs : set of Track := {};
+			for all rt in set rts do
+				for all tr in set rt do
+					trs := trs union {tr};
+			return trs;
+		) else return {};
+		
 functions
-	public GetTracksInRoute: set of Route -> set of Track
-	GetTracksInRoute(rts) ==
-	(
-		if (card rts > 0) then (let rt in set rts in rt) else {}
-	);
-	
 	public InvNoTrackAvailableAndOccupied: map Track to bool * set of Route -> bool
 	InvNoTrackAvailableAndOccupied(trmap, rts) ==
 	-- A track cannot be available and occupied.

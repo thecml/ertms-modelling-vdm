@@ -33,7 +33,7 @@ operations
 	Test_EnterNotCalled_ItlDoesNotChangeStateForTrack() ==
 	(
 		dcl occupiedTracks : set of Interlocking`Track;
-		occupiedTracks := itl.GetOccupiedTracks();
+		occupiedTracks := itl.GetTrackTable();
 		assertTrue(track not in set occupiedTracks);
 	);
 	
@@ -42,7 +42,7 @@ operations
 	(
 		dcl occupiedTracks : set of Interlocking`Track;
 		uut.Enter();
-		occupiedTracks := itl.GetOccupiedTracks();
+		occupiedTracks := itl.GetTrackTable();
 		assertTrue(track in set occupiedTracks);
 	);
 	
@@ -52,7 +52,7 @@ operations
 		dcl occupiedTracks : set of Interlocking`Track;
 		uut.Enter();
 		uut.Leave();
-		occupiedTracks := itl.GetOccupiedTracks();
+		occupiedTracks := itl.GetTrackTable();
 		assertTrue(track not in set occupiedTracks);
 	);
 	

@@ -22,56 +22,53 @@ values
 	private track10 = mk_Interlocking`Track(25,7,28,5,"L-DE", 90);
 	private track11 = mk_Interlocking`Track(28,5,33,5,"L-EF", 90);
 	
-	--two routes
-	private route1 = {track1, track2, track3, track7, track8, track9};
-	private route2 = {track4, track5, track6, track7, track10, track11};
+	--five routes for all parts of the world
+	private routeFU = {track1, track2, track3};
+	private routeFL = {track4, track5, track6};
+	private routeB = {track7};
+	private routeLU = {track8, track9};
+	private routeLL = {track10, track11};
+	
+	--all tracks in system
 	private allTracks = {track1, track2, track3, track4, track5, track6,
 	track7, track8, track9, track10, track11};
 	
-	--global interlocking system for all routes
+	--global interlocking system, initial empty table
 	private itl = new Interlocking({});
 	
-	--global controller for itl
-	private controller = new Controller([route1, route2], itl);
+	--global controller, feeds routes to ITL
+	private controller = new Controller([routeFU, routeFL,
+	routeB, routeLU, routeLL], itl);
 	
-	--global radioblockcenter
-	private rbc = new RadioBlockCenter({route1, route2}, allTracks, itl);
+	--global radioblockcenter, no available routes, covers all tracks
+	private rbc = new RadioBlockCenter({}, allTracks, itl);
 		
-	-- Eurobalise maps for each train
-	private trackEbMap1 = {track1 |-> new Eurobalise(itl, track1), track2 |-> new Eurobalise(itl, track2),
-	track3 |-> new Eurobalise(itl, track3), track7 |-> new Eurobalise(itl, track7),
-	track8 |-> new Eurobalise(itl, track8), track9 |-> new Eurobalise(itl, track9)};
+	-- Eurobalise maps for trains
+	private trackEbMap = {track1 |-> new Eurobalise(itl, track1), track2 |-> new Eurobalise(itl, track2),
+	track3 |-> new Eurobalise(itl, track3), track4 |-> new Eurobalise(itl, track4),
+	track5 |-> new Eurobalise(itl, track5), track6 |-> new Eurobalise(itl, track6),
+	track7 |-> new Eurobalise(itl, track7), track8 |-> new Eurobalise(itl, track8),
+	track9 |-> new Eurobalise(itl, track9), track10 |-> new Eurobalise(itl, track10),
+	track11 |-> new Eurobalise(itl, track11)};
 	
-	private trackEbMap2 = {track4 |-> new Eurobalise(itl, track4), track5 |-> new Eurobalise(itl, track5),
-	track6 |-> new Eurobalise(itl, track6), track7 |-> new Eurobalise(itl, track7),
-	track10 |-> new Eurobalise(itl, track10), track11 |-> new Eurobalise(itl, track11)};
-	
-	-- Route maps for each train
-	private routeMap1 = {1 |-> track1, 2 |-> track2, 3 |-> track3,
-	4 |-> track7, 5 |-> track8, 6 |-> track9};
-	private routeMap2 = {1 |-> track4, 2 |-> track5, 3 |-> track6,
-	4 |-> track7, 5 |-> track10, 6 |-> track11};
+	-- Routetables for trains
+	private timeTable1 = [routeFU, routeB, routeLU];
+	private timeTable2 = [routeFL, routeB, routeLL];
 
-	-- Trains have different routes, but same RBC
-	private trains: seq of Train = [new Train(routeMap1, trackEbMap1, rbc, "IC1"),
-																		new Train(routeMap2, trackEbMap2, rbc, "IC2")];
+	-- Create trains
+	private trains: seq of Train = [new Train(trackEbMap, rbc, "IC1"),
+																		new Train(trackEbMap, rbc, "IC2")];
 																 											 
-instance variables
-	
 operations
     public World: () ==> World
-           World() == InitialiseSystem();
+    World() == InitialiseSystem();
            
     private InitialiseSystem: () ==> ()
-            InitialiseSystem() ==
-            (
-            	for train in trains do train.Start();
-            	controller.Step();
-            	controller.Step();
-            	controller.Step();
-            	controller.Step();
-							controller.Step();
-            );
+    InitialiseSystem() ==
+    (
+    	for route in timeTable1 do (trains(1).AddRoute(route); trains(1).Start()); 
+      for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
+    );
             
     public Run: nat ==> ()
     			 Run(stepLimit) ==
@@ -82,9 +79,10 @@ operations
                 for train in trains do
                 (
                 	train.Step();
-                	Print("Train " ^ VDMUtil`val2seq_of_char[seq of char](train.GetId())
-                	 ^ " at: " ^ VDMUtil`val2seq_of_char[real](train.GetPosX())
-                	 ^ "-" ^ VDMUtil`val2seq_of_char[real](train.GetPosY()));
+                	-- print stats
+                	Print("Stats for train: " ^
+                	VDMUtil`val2seq_of_char[seq of char](train.GetId()) ^ " @ " ^
+                	VDMUtil`val2seq_of_char[seq of Train`TrainLogEntry](train.GetStats()));
                 )
                );       
                     

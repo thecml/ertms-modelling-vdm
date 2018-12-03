@@ -1,0 +1,42 @@
+Step: 1
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <Running>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Running>, 20, 5), mk_TrainLogEntry("IC2", <Running>, 17, 7), mk_TrainLogEntry("IC2", <Running>, 17, 7)]
+Step: 2
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Running>, 17, 7), mk_TrainLogEntry("IC2", <Running>, 17, 7), mk_TrainLogEntry("IC2", <WaitingForSignal>, 17, 7)]
+Step: 3
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Running>, 17, 7), mk_TrainLogEntry("IC2", <Running>, 25, 7), mk_TrainLogEntry("IC2", <Running>, 25, 7)]
+Step: 4
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Running>, 28, 5), mk_TrainLogEntry("IC2", <Running>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 5
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Running>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 6
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 7
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 8
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 9
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 10
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0), mk_TrainLogEntry("IC1", <WaitingForSignal>, 0, 0)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 11
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <Running>, 20, 10), mk_TrainLogEntry("IC1", <Running>, 17, 7), mk_TrainLogEntry("IC1", <Running>, 17, 7)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 12
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <Running>, 17, 7), mk_TrainLogEntry("IC1", <Running>, 25, 7), mk_TrainLogEntry("IC1", <Running>, 25, 7)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 13
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <Running>, 28, 10), mk_TrainLogEntry("IC1", <Running>, 35, 10), mk_TrainLogEntry("IC1", <Stopped>, 35, 10)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
+Step: 14
+Stats for train: "IC1" @ [mk_TrainLogEntry("IC1", <Running>, 35, 10), mk_TrainLogEntry("IC1", <Stopped>, 35, 10), mk_TrainLogEntry("IC1", <Stopped>, 35, 10)]
+Stats for train: "IC2" @ [mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5), mk_TrainLogEntry("IC2", <Stopped>, 33, 5)]
