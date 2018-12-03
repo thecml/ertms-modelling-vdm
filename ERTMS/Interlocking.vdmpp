@@ -92,11 +92,11 @@ operations
 	Interlocking(rts) ==
 		atomic (
 			availableRoutes := rts;
-			trackTable := { tr |-> false | tr in set GetTracksInRoute(rts)};
+			trackTable := { tr |-> false | tr in set GetTracksInRoutes(rts)};
 		 );
 		 
-	pure public GetTracksInRoute: set of Route ==> set of Track
-	GetTracksInRoute(rts) ==
+	pure public GetTracksInRoutes: set of Route ==> set of Track
+	GetTracksInRoutes(rts) ==
 		if (card rts > 0) then
 		(
 			dcl trs : set of Track := {};
