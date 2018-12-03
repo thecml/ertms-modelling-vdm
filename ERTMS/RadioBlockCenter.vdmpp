@@ -18,14 +18,14 @@ instance variables
 	inv Interlocking`InvNoDuplicateTrack(availableRoutes);
 
 operations	
-	public RequestMovementAuthority: Interlocking`Track ==> MovementAuthorityReply
-	RequestMovementAuthority(tr) ==
+	public RequestMovementAuthority: Interlocking`Route ==> MovementAuthorityReply
+	RequestMovementAuthority(rt) ==
 	(
 		--dcl trs: set of Interlocking`Track := {let t in set rt in t | rt in set availableRoutes};
 		--if(tr in set responsibleTracks and tr in set trs)
-		if(tr in set responsibleTracks) then (
+		if(responsibleTracks psubset rt) then (
 				dcl msg : Interlocking`Order;
-				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed({tr})
+				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed(rt)
 				in (
 					msg := message;
 					availableRoutes := rtr; );

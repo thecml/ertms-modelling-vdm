@@ -1,6 +1,6 @@
 class Train	
 types
-	public State = <Running> | <Stopped> | <WaitingForMoa> | <Finished>;
+	public State = <Started> | <Stopped> | <WaitingForMoa> | <Finished>;
 
 instance variables
 	private posX : real;
@@ -15,6 +15,9 @@ instance variables
 	private id : seq of char := "";
 	private state: State := <Stopped>;
 	
+	private schedule: map nat to Interlocking`Route;
+	--private currentRoute: Interlocking`Route;
+	
 	inv forall x in set {1, ..., card dom route-1}
 	 & InvTrackIsConnected(route(x),route(x+1));
 	inv card dom route = card dom transponders;
@@ -28,17 +31,21 @@ operations
 	Step() ==
 	( 
 	    Drive();
-      UpdateRecentStates();
+      UpdateStats();
 	 );
 	 
 	 private Move: () ==> ()
 	 Move() ==
 	 (
-		if (state = <Started>) (
-			dcl currentEb : Eurobalise := transponders(route(currentTrack));				
-		
-		
-		
+		if (state = <Started>) then (
+			if(rbc.RequestMovementAuthority(schedule(1)) = <MovementAuthorityGranted>)
+			then (
+					dcl currentRoute : Interlocking`Route := schedule(1);
+					
+							
+
+			) else
+				(skip;)
 		)
 	 );
 	 
@@ -49,7 +56,6 @@ operations
 	private Drive: () ==> ()
 	Drive() ==
 	-- Drive() performs one iteration of moving the train
-
 	( -- continue if there is track to traverse
 		if(currentTrack <= card dom route and started) then
 		(
