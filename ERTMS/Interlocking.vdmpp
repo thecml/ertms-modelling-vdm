@@ -24,7 +24,7 @@ types
 										
 instance variables
 	private trackTable : map Track to bool; -- track table with physical state of track
-	private availableRoutes : set of Route; -- routes not planned to be occupied
+	private availableRoutes : set of Route; -- routes from controller to be used
 	
 	inv InvNoDuplicateTrack(availableRoutes);
 --	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
@@ -62,16 +62,14 @@ operations
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied ,
-		-- then add it to routesAvaliable and clear trackTable -- else do nothing				
+		-- then add it to routesAvaliable and clear trackTable -- else do nothing	
 		if (rt not in set availableRoutes and
 			forall tr in set rt & tr not in set dom trackTable
 				or trackTable(tr) = false)
 					then (
-						atomic (		
 							availableRoutes := availableRoutes union {rt};
-							trackTable := trackTable ++ {let tr in set rt in tr |-> false}
-						)
-					) else skip;
+							trackTable := trackTable ++ { tr |-> false | tr in set GetTracksInRoutes({rt})};	
+					) else skip;	
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
@@ -80,7 +78,7 @@ operations
 		if(sta = <TRAIN_ENTER>) then
 				trackTable := trackTable ++ {tr |-> true}
 		else if (sta = <TRAIN_LEAVE>) then
-				trackTable := trackTable ++ {tr|->false}
+				trackTable := trackTable ++ {tr |-> false}
 		post tr in set dom trackTable;
 			
 	pure public GetAvaliableRoutes: () ==> set of Route

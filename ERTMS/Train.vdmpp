@@ -1,24 +1,25 @@
 class Train	
 types
-	public State = <Running> | <Stopped> | <Finished>;
+	public State = <Running> | <Stopped> | <WaitingForSignal> | <Finished>;
 	public TrainLogEntry :: id : seq of char
 													state : State
 													posX : real
 													posY : real
 
 instance variables
-	private posX : real := 0;
-	private posY : real := 0;
-	private currentSpeed : real := 0;
+	private posX : nat := 0;
+	private posY : nat := 0;
+	private currentSpeed : nat := 0;
 	private transponders : map Interlocking`Track to Eurobalise := {|->};
 	private id : seq of char := "";
 	private state: State := <Stopped>;
 	private routeTable: seq of Interlocking`Route := [];
 	private trainLog: seq of TrainLogEntry := [];
 	private rbc : RadioBlockCenter;
-	inv forall rt in seq routeTable & InvTrackIsConnected(rt);
+--	inv forall rt in seq routeTable & InvTrackIsConnected(rt);
 	inv state = <Running> and currentSpeed >= 0
-	 or state = <Stopped> and currentSpeed = 0;
+	 or state = <Stopped> and currentSpeed = 0
+	 or state = <WaitingForSignal> and currentSpeed = 0;
 
 operations
 	public Step: () ==> ()
@@ -30,24 +31,32 @@ operations
 	 private Drive: () ==> ()
 	 Drive() ==
 	 (
-		if (state = <Running> and len routeTable > 0) then (
+		if (state = <Running> or state = <WaitingForSignal>
+		 and len routeTable > 0) then (
 			dcl currentRoute : Interlocking`Route := hd routeTable;
 			UpdateStats();
 			if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
 			then (
+					state := <Running>;
 					UpdateStats();
 					for track in GetTracksInRoute(currentRoute) do (
 						dcl currentEb : Eurobalise := transponders(track);
-						currentEb.Enter();
 						currentSpeed := track.maxSpeed;
+						currentEb.Enter();
 						posX := track.endX;
 						posY := track.endY;
+						currentEb.Leave();
 						UpdateStats();
 					);
 					routeTable := tl routeTable;
+					if (routeTable = []) then (
+						currentSpeed := 0;
+						state := <Stopped>;
+					);
 					UpdateStats();
 			) else (
-				state := <Stopped>;
+				currentSpeed := 0;
+				state := <WaitingForSignal>;
 				UpdateStats();
 			)
 		) else UpdateStats();
@@ -55,11 +64,17 @@ operations
 	 
 	 private UpdateStats: () ==> ()
 	 UpdateStats() ==
-	 	trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
+	 (
+	 		trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
+	 		if(len trainLog > 3) then
+	 			trainLog := tl trainLog;
+	 );
 	 	
 	 public AddRoute: Interlocking`Route ==> ()
 	 AddRoute(rt) ==
-	 	routeTable := routeTable ^ [rt];
+	 	routeTable := routeTable ^ [rt]
+	 pre card rt > 0
+	 post rt = routeTable(len routeTable);
 	 	
 	 pure public GetStats: () ==> seq of TrainLogEntry
 	 GetStats() ==
@@ -108,9 +123,9 @@ operations
 	 );
 	 
 functions
-	public InvTrackIsConnected: Interlocking`Route -> bool
-	InvTrackIsConnected(rt) ==
-		forall tr1,tr2 in set rt
-		 & tr1.endX = tr2.startX and tr1.endY = tr2.startY;
+--	public InvTrackIsConnected: Interlocking`Route -> bool
+--	InvTrackIsConnected(rt) ==
+--		forall tr1,tr2 in set rt & tr1 <> tr2 =>
+--		 tr1.endX = tr2.startX and tr1.endY = tr2.startY;
 		
 end Train

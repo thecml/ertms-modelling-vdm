@@ -66,8 +66,8 @@ operations
     private InitialiseSystem: () ==> ()
     InitialiseSystem() ==
     (
-    	for route in timeTable1 do trains(1).AddRoute(route);
-      for route in timeTable2 do trains(2).AddRoute(route);
+    	for route in timeTable1 do (trains(1).AddRoute(route); trains(1).Start()); 
+      for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
     );
             
     public Run: nat ==> ()
@@ -81,8 +81,7 @@ operations
                 	train.Step();
                 	-- print stats
                 	Print("Stats for train: " ^
-                	VDMUtil`val2seq_of_char[seq of char](train.GetId())
-                	 ^ " @ " ^
+                	VDMUtil`val2seq_of_char[seq of char](train.GetId()) ^ " @ " ^
                 	VDMUtil`val2seq_of_char[seq of Train`TrainLogEntry](train.GetStats()));
                 )
                );       
