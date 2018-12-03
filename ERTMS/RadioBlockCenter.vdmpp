@@ -10,7 +10,7 @@ tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
 	mk_Interlocking`Track(25,5,30,5,"EF",110)}
 
 instance variables
-	private responsibleTracks : set of Interlocking`Track;
+	private respTracks : set of Interlocking`Track;
 	private availableRoutes : set of Interlocking`Route; -- from interlocking
 	private movementAuthorites : map nat to seq of Interlocking`Track;
 	private itl : Interlocking;
@@ -23,9 +23,9 @@ operations
 	(
 		--dcl trs: set of Interlocking`Track := {let t in set rt in t | rt in set availableRoutes};
 		--if(tr in set responsibleTracks and tr in set trs)
-		if(responsibleTracks psubset rt) then (
+		if(rt subset respTracks) then (
 				dcl msg : Interlocking`Order;
-				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed(rt)
+				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed(rt, respTracks)
 				in (
 					msg := message;
 					availableRoutes := rtr; );
@@ -44,14 +44,14 @@ operations
 	
 	public GetResponsibleTracks: () ==> set of Interlocking`Track
 	GetResponsibleTracks() ==
-		return responsibleTracks;
+		return respTracks;
 	
 	public RadioBlockCenter : set of Interlocking`Route
 	 * set of Interlocking`Track * Interlocking ==> RadioBlockCenter
 	RadioBlockCenter(rts,trs,pitl) ==
 	atomic (
 		availableRoutes := rts;
-		responsibleTracks := trs;
+		respTracks := trs;
 		itl := pitl;
 		movementAuthorites := {|->};
 	);

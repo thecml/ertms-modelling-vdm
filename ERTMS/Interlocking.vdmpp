@@ -27,11 +27,11 @@ instance variables
 	private availableRoutes : set of Route; -- routes not planned to be occupied
 	
 	inv InvNoDuplicateTrack(availableRoutes);
-	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
+--	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
 	
 operations
-	public RequestToProceed: Route ==> ProceedReply
-	RequestToProceed(prt) ==
+	public RequestToProceed: Route * set of Track ==> ProceedReply
+	RequestToProceed(prt, respTrs) ==
 		-- if route is in avaliableRoutes and the route tracks are not in the dom of trackOccupied
 			-- grant proceed by returning true, else return false
 		if (card availableRoutes > 0) then (
@@ -39,17 +39,26 @@ operations
 			 & prt subset rt and forall tr in set prt
 			  & tr in set dom trackTable) then
 					if(forall tr in set prt & trackTable(tr) = false) then (
-						availableRoutes := availableRoutes \ {prt};
-						return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes)
+						availableRoutes := {rts | rts in set availableRoutes
+						 & forall ptrs in set {prt} & rts inter ptrs = {}};
+						 return ProceedGranted(respTrs);
 					)
 					else
-						return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes)
-			else return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes)
+						return ProceedDenied(respTrs)
+			else return ProceedDenied(respTrs)
 			) else (
-				return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes);
+				return ProceedDenied(respTrs)
 			)
 	pre card prt > 0;
-
+	
+	private ProceedGranted: set of Track ==> ProceedReply
+	ProceedGranted(respTrs) ==
+		return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes inter {respTrs});
+		
+	private ProceedDenied: set of Track ==> ProceedReply
+	ProceedDenied(respTrs) ==
+		return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes inter {respTrs});
+	
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied ,

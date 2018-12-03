@@ -7,30 +7,19 @@ types
 													posY : real
 
 instance variables
-	private posX : real;
-	private posY : real;
-	private currentTrack : nat;
-	private route : map nat to Interlocking`Track;
-	private transponders : map Interlocking`Track to Eurobalise;
-	private rbc : RadioBlockCenter;
-	private movementAuths : map Interlocking`Track to bool;
-	private speed : real := 0;
-	private started : bool := false;
+	private posX : real := 0;
+	private posY : real := 0;
+	private currentSpeed : real := 0;
+	private transponders : map Interlocking`Track to Eurobalise := {|->};
 	private id : seq of char := "";
 	private state: State := <Stopped>;
+	private routeTable: seq of Interlocking`Route := [];
+	private trainLog: seq of TrainLogEntry := [];
+	private rbc : RadioBlockCenter;
+	inv forall rt in seq routeTable & InvTrackIsConnected(rt);
+	inv state = <Running> and currentSpeed >= 0
+	 or state = <Stopped> and currentSpeed = 0;
 
-	private timetable: seq of Interlocking`Route;
-	private trainLog: seq of TrainLogEntry;
-	--private currentRoute: Interlocking`Route;
-	
-	inv forall x in set {1, ..., card dom route-1}
-	 & InvTrackIsConnected(route(x),route(x+1));
-	inv card dom route = card dom transponders;
-	inv forall tr in set rng route &
-	 tr.startX > 0 and tr.startY > 0 and tr.endX > 0 and tr.endY > 0;
-	inv started = true and speed >= 0 or started = false and speed = 0;
-	inv speed <= route(currentTrack).maxSpeed;
-	
 operations
 	public Step: () ==> ()
 	Step() ==
@@ -41,8 +30,8 @@ operations
 	 private Drive: () ==> ()
 	 Drive() ==
 	 (
-		if (state = <Running> and len timetable > 0) then (
-			dcl currentRoute : Interlocking`Route := hd timetable;
+		if (state = <Running> and len routeTable > 0) then (
+			dcl currentRoute : Interlocking`Route := hd routeTable;
 			UpdateStats();
 			if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
 			then (
@@ -50,12 +39,12 @@ operations
 					for track in GetTracksInRoute(currentRoute) do (
 						dcl currentEb : Eurobalise := transponders(track);
 						currentEb.Enter();
-						speed := track.maxSpeed;
+						currentSpeed := track.maxSpeed;
 						posX := track.endX;
 						posY := track.endY;
 						UpdateStats();
 					);
-					timetable := tl timetable;
+					routeTable := tl routeTable;
 					UpdateStats();
 			) else (
 				state := <Stopped>;
@@ -70,9 +59,9 @@ operations
 	 	
 	 public AddRoute: Interlocking`Route ==> ()
 	 AddRoute(rt) ==
-	 	timetable := timetable ^ [rt];
+	 	routeTable := routeTable ^ [rt];
 	 	
-	 public GetStats: () ==> seq of TrainLogEntry
+	 pure public GetStats: () ==> seq of TrainLogEntry
 	 GetStats() ==
 	 	return trainLog;
 	 	
@@ -93,53 +82,35 @@ operations
 	public Stop: () ==> ()
 	Stop() ==
 		state := <Stopped>;
-	
-	public GetPosX: () ==> real
-	GetPosX() ==
-		return posX;
-		
-	public GetPosY: () ==> real
-	GetPosY() ==
-		return posY;
-	
-	public GetSpeed: () ==> real
-	GetSpeed() ==
-		return speed;
-	
-	public GetId: () ==> seq of char
-	GetId() ==
-		return id;
 		
 	public GetRoute: () ==> Interlocking`Route
 	GetRoute() ==
-		return hd timetable;
+		return hd routeTable;
+		
+	public GetId: () ==> seq of char
+	GetId() ==
+		return id;
 		
 	public IsRunning: () ==> bool
 	IsRunning() ==
 		if state = <Running> then return true
 		else return false;
 		
-	public GetMovementAuths: () ==> set of Interlocking`Track
-	GetMovementAuths() ==
-		return {tr | tr in set dom movementAuths & movementAuths(tr) = true};
-		
-	public Train: map nat to Interlocking`Track
-	* map Interlocking`Track to Eurobalise * RadioBlockCenter * seq of char ==> Train
-	 Train(rtmap,trans,prbc, pid) ==
+	public Train: map Interlocking`Track to Eurobalise
+	 * RadioBlockCenter * seq of char ==> Train
+	 Train(trans, prbc, pid) ==
 	 atomic (
-	 	posX := rtmap(1).startX;
-	 	posY := rtmap(1).startY;
-	 	currentTrack := 1;
-	 	route := rtmap;
+	 	--posX := rtmap(1).startX;
+	 	--posY := rtmap(1).startY;
 	 	transponders := trans;
 	 	rbc := prbc;
-	 	movementAuths := {x |-> false | x in set rng rtmap};
 	 	id := pid;
 	 );
 	 
 functions
-	public InvTrackIsConnected: Interlocking`Track * Interlocking`Track -> bool
-	InvTrackIsConnected(tr1, tr2) ==
-		tr1.endX = tr2.startX and tr1.endY = tr2.startY;
+	public InvTrackIsConnected: Interlocking`Route -> bool
+	InvTrackIsConnected(rt) ==
+		forall tr1,tr2 in set rt
+		 & tr1.endX = tr2.startX and tr1.endY = tr2.startY;
 		
 end Train

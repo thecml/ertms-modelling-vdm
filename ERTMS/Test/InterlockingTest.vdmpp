@@ -41,7 +41,7 @@ operations
 	Test_RouteInAvaRoutes_ProceedGranted() ==
 	(
 		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
-		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute);
+		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute, testRoute);
 		assertTrue(msg.message = <PROCEED_GRANTED>);
 	);
 	
@@ -49,7 +49,7 @@ operations
 	Test_RouteNotInAvaRoutes_ProceedDenied() ==
 	(
 		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
-		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute);
+		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute, testRoute);
 		assertTrue(msg.message = <PROCEED_DENIED>);
 	);
 	

@@ -42,21 +42,21 @@ operations
 		assertTrue(route not in set uut.GetAvailableRoutes());
 	);
 	
-	public Test_RequestMoaForFreeTrack_MoaGranted_: () ==> ()
-	Test_RequestMoaForFreeTrack_MoaGranted_() ==
+	public Test_RequestMoaForFreeRoute_MoaGranted: () ==> ()
+	Test_RequestMoaForFreeRoute_MoaGranted() ==
 	(
 		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
 		dcl msg : RadioBlockCenter`MovementAuthorityReply
-		 := uut.RequestMovementAuthority(track);
+		 := uut.RequestMovementAuthority({track});
 		assertTrue(msg = <MovementAuthorityGranted>);
 	);
 	
-	public Test_RequestMoaForNotFreeTrack_MoaDenied: () ==> ()
-	Test_RequestMoaForNotFreeTrack_MoaDenied() ==
+	public Test_RequestMoaForNotFreeRoute_MoaDenied: () ==> ()
+	Test_RequestMoaForNotFreeRoute_MoaDenied() ==
 	(
 		dcl track : Interlocking`Track := mk_Interlocking`Track(90,70,95,75,"HI",100);
 		dcl msg : RadioBlockCenter`MovementAuthorityReply
-		 := uut.RequestMovementAuthority(track);
+		 := uut.RequestMovementAuthority({track});
 		assertTrue(msg = <MovementAuthorityDenied>);
 	);	
 	
