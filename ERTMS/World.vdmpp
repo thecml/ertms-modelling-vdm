@@ -1,12 +1,12 @@
 class World
 
 values
-	--First upper part of route
+	--First upper part of world
 	private track1 = mk_Interlocking`Track(10,10,15,10,"U-AB",100);
 	private track2 = mk_Interlocking`Track(15,10,20,10,"U-BC",100);
 	private track3 = mk_Interlocking`Track(20,10,17,7,"U-CD",50);
 	
-	--First lower part of route
+	--First lower part of world
 	private track4 = mk_Interlocking`Track(10,5,15,5,"L-AB",100);
 	private track5 = mk_Interlocking`Track(15,5,20,5,"L-BC",100);
 	private track6 = mk_Interlocking`Track(20,5,17,7,"L-CD",50);
@@ -14,11 +14,11 @@ values
 	--Bridge
 	private track7 = mk_Interlocking`Track(17,7,25,7,"B-AB",10);
 	
-	--Last upper part of route
+	--Last upper part of world
 	private track8 = mk_Interlocking`Track(25,7,28,10,"U-DE",90);
 	private track9 = mk_Interlocking`Track(28,10,35,10, "U-EF",90);
 	
-	--Last lower part of route
+	--Last lower part of world
 	private track10 = mk_Interlocking`Track(25,7,28,5,"L-DE", 90);
 	private track11 = mk_Interlocking`Track(28,5,33,5,"L-EF", 90);
 	
@@ -57,7 +57,7 @@ values
 
 	-- Create trains
 	private trains: seq of Train = [new Train(trackEbMap, rbc, "IC1"),
-																		new Train(trackEbMap, rbc, "IC2")];
+								    new Train(trackEbMap, rbc, "IC2")];
 																 											 
 operations
     public World: () ==> World
@@ -67,7 +67,7 @@ operations
     InitialiseSystem() ==
     (
     	for route in timeTable1 do (trains(1).AddRoute(route); trains(1).Start()); 
-      for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
+        for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
     );
             
     public Run: nat ==> ()
