@@ -111,7 +111,6 @@ The controller controls at what rate new routes are placed into the interlocking
 	
 	private SendRouteRequest:() ==> ()
 	SendRouteRequest() ==
-	-- send a random selected route into the Interlocking as a route request.
 	(dcl rn : nat := MATH`rand(len routes)+1;
 		itl.RequestRoute(routes(rn));
 	);
@@ -121,7 +120,9 @@ The controller controls at what rate new routes are placed into the interlocking
 
 \subsection{Interlocking}
 
-The interlocking has three primary operations with core functionality: One that accepts new route requests from the controller for routes $R_{n}$ and place it into its locking table (available routes) if it not already occupied. One that receive and store information from corresponding Eurobalises (track trackers) about the physical movement of trains. Lastly one that respond to the RadionBlockCenter requesting a MA (Movement Authority) on the behalf of trains. We start be defining the implemented types and instance variables (listing \ref{lst:itl1}). The $trackTable$ maps tracks with a given coordinate to either a true or false value, if the track is occupied or not.
+The interlocking has three primary operations with core functionality, defined as such because they change the state of the class. First operation accepts new route requests from the controller for routes $R_{n}$ and place it into its locking table (available routes) if it not already occupied. We choose a set for these, as they are finite, the order is not important and duplicate elements should not be significant. Sets also support some useful operators which we will see. The second operation receive and store information from corresponding Eurobalises (track trackers) about the physical movement of trains. We choose a mapping for these, since they define lookup operators that allow us to assert if a particular track is occupied or not. The $trackTable$ maps tracks with a given coordinate to either a true or false value, if the track is occupied or not. Third operation respond to the RadionBlockCenter requesting a MA (Movement Authority) on the behalf of trains. We start be defining the implemented types and instance variables (listing \ref{lst:itl1}).
+
+Notice the atomic use in the constructor to defer invariant assertion after the assignments.
 
 \begin{vdmsl}[label=lst:itl1,caption=Types and state information and constructor for the Interlocking class.]
 	class Interlocking
@@ -142,13 +143,15 @@ The interlocking has three primary operations with core functionality: One that 
 	private trackTable : map Track to bool;
 	private availableRoutes : set of Route;
 	inv InvNoDuplicateTrack(availableRoutes);
-	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
+	inv InvNoTrackAvailableAndOccupied(trackTable,
+	 availableRoutes);
 	
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
 	atomic (
-	availableRoutes := rts;
-	trackTable := { tr |-> false | tr in set GetTracksInRoutes(rts)};
+		availableRoutes := rts;
+		trackTable := { tr |-> false |
+			 tr in set GetTracksInRoutes(rts)};
 	);
 	...
 	end Interlocking
@@ -156,12 +159,12 @@ The interlocking has three primary operations with core functionality: One that 
 
 The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes sure that occupied tracks in $trackTable$ and set of available routes are mutually exclusive and $InvNoDuplicateTrack$ that makes sure no duplicate track (with the same start and end coordinates) exists in the set of available routes (listing \ref{lst:itl2})
 
-\begin{vdmsl}[label=lst:itl2,caption=Two invariants that verifies integrity of available routes and checks a route for duplicate track.]
+\begin{vdmsl}[label=lst:itl2,caption=Two invariants that verify the integrity of the available routes and checks a route for duplicate track.]
 	public InvNoTrackAvailableAndOccupied: map Track to bool
 	 * set of Route -> bool
 	InvNoTrackAvailableAndOccupied(trmap, rts) ==
 	forall rt in set rts & forall tr in set rt
-	& tr not in set dom trmap or trmap(tr) = false;
+		& tr not in set dom trmap or trmap(tr) = false;
 	
 	public InvNoDuplicateTrack: set of Route -> bool
 	InvNoDuplicateTrack(srt) ==
@@ -176,14 +179,16 @@ Next is the $RequestRoute()$ operation called by the controller (listing \ref{ls
 \begin{vdmsl}[label=lst:itl3,caption=Definition of the SendRouteReques() operation.]
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
+	(
 	if (rt not in set availableRoutes and
-	forall tr in set rt & tr not in set dom trackTable
-	or trackTable(tr) = false)
-	then (
-	availableRoutes := availableRoutes union {rt};
-	trackTable := trackTable ++ { tr |-> false |
-		 tr in set GetTracksInRoutes({rt})};	
-	) else skip;	
+		forall tr in set rt & tr not in set dom trackTable
+		 or trackTable(tr) = false)
+		 then (
+			availableRoutes := availableRoutes union {rt};
+			trackTable := trackTable ++ { tr |-> false |
+		 				  tr in set GetTracksInRoutes({rt})};	
+		 ) else skip;
+	)	
 \end{vdmsl}
 
 The next operation $SetTrackState()$ is called by the Eurobalise when trains enter a new track $tr$ or leaves a track. This is passed as an argument by the Eurobalise. We set the track as occupied on enter and clears it on leave in the $trackTable$ (listing \ref{lst:itl4}). We set a precondition that the track must be known to the interlocking.
@@ -191,52 +196,46 @@ The next operation $SetTrackState()$ is called by the Eurobalise when trains ent
 \begin{vdmsl}[label=lst:itl4,caption=Definition of the SendRouteReques() operation.]
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 	SetTrackState(tr, sta) ==
-	-- if train enters, set specific track as occupied
-	-- if train leaves, clear track
 	if(sta = <TRAIN_ENTER>) then
-	trackTable := trackTable ++ {tr |-> true}
+		trackTable := trackTable ++ {tr |-> true}
 	else if (sta = <TRAIN_LEAVE>) then
-	trackTable := trackTable ++ {tr |-> false}
+		trackTable := trackTable ++ {tr |-> false}
 	pre tr in set dom trackTable;	
 \end{vdmsl}
 
-Finally the $RequestToProceed$ operation called by the RadionBlockCenter (listing \ref{lst:itl5}). It returns a proceed granted $<PROCEED\_GRANTED$ if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ neither are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$.
+Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (listing \ref{lst:itl5}). It returns a proceed granted if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ neither are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$.
 
 \begin{vdmsl}[label=lst:itl5,caption=Definition of the SendRouteReques() operation.]
 	public RequestToProceed: Route * set of Track ==> ProceedReply
 	RequestToProceed(prt, respTrs) ==
-	-- if route is in avaliableRoutes and the route tracks are not in the dom of trackOccupied
-	-- grant proceed by returning true, else return false
 	if (card availableRoutes > 0) then (
-	if(exists rt in set availableRoutes
-	& prt subset rt and forall tr in set prt
-	& tr in set dom trackTable) then
-	if(forall tr in set prt & trackTable(tr) = false) then (
-	availableRoutes := {rts | rts in set availableRoutes
-		& forall ptrs in set {prt} & rts inter ptrs = {}};
-	return ProceedGranted(respTrs);
-	)
-	else
-	return ProceedDenied(respTrs)
-	else return ProceedDenied(respTrs)
-	) else (
-	return ProceedDenied(respTrs)
-	)
+		if(exists rt in set availableRoutes
+		& prt subset rt and forall tr in set prt
+		& tr in set dom trackTable) then
+			if(forall tr in set prt & trackTable(tr) = false) then (
+				availableRoutes := {rts | rts in set availableRoutes
+				& forall ptrs in set {prt} & rts inter ptrs = {}};
+				return ProceedGranted(respTrs);
+			)
+			else return ProceedDenied(respTrs)
+		else return ProceedDenied(respTrs)
+	) else ( return ProceedDenied(respTrs) )
 	pre card prt > 0;
 \end{vdmsl}
 
 \subsection{RadioBlockCenter}
 
-The RadioBlockCenter receives MA requests from trains and forwards these to the interlocking, basically acting as a gateway but with its own state of available routes and responsible tracks initialized in the constructor (listing \ref{lst:rbc1}).
+The RadioBlockCenter receives MA requests from trains and forwards these to the interlocking, basically acting as a gateway but with its own state of available routes and responsible tracks initialized in the constructor. Similar to the interlocking, we use sets here as the order is unimportant and duplicate should not be significant for our model. Also at no point do we need to select certain elements, but operators like membership, intersection and union are important to us. Listing \ref{lst:rbc1} shows the declarations for the RadioBlockCenter.
 
 \begin{vdmsl}[label=lst:rbc1,caption=Definition of class state and constructor for RadioBlockCenter.]
 	class RadioBlockCenter
 	types
-	public MovementAuthorityReply = <MovementAuthorityGranted> | <MovementAuthorityDenied>;
+	public MovementAuthorityReply =
+	 <MovementAuthorityGranted> | <MovementAuthorityDenied>;
 	
 	instance variables
 	private respTracks : set of Interlocking`Track;
-	private availableRoutes : set of Interlocking`Route := {}; -- local state of available routes
+	private availableRoutes : set of Interlocking`Route := {};
 	private itl : Interlocking;
 	
 	public RadioBlockCenter : set of Interlocking`Track
@@ -252,20 +251,21 @@ The RadioBlockCenter receives MA requests from trains and forwards these to the 
 To receive the MA's, we define a operation $RequestMovementAuthority()$ that takes a certain route $Rt$, checks that the radio block center is responsible for tracks in $Rt$, then forwards a synchronous proceed request to the interlocking and sends the reply back to the train for route $Rt$. The interlocking replies with all available routes that intersects with the responsible tracks, hence it is passed as a parameter (listing \ref{lst:rbc2})
 
 \begin{vdmsl}[label=lst:rbc2,caption=Definition of the public.]
-	RequestMovementAuthority: Interlocking`Route ==> MovementAuthorityReply
+	RequestMovementAuthority: Interlocking`Route
+	 ==> MovementAuthorityReply
 	RequestMovementAuthority(rt) ==
 	(
 	if(rt subset respTracks) then (
-	dcl msg : Interlocking`Order;
-	def mk_Interlocking`ProceedReply(message,rtr)
-	 = itl.RequestToProceed(rt, respTracks)
-	in ( msg := message; availableRoutes := rtr; );
-	if (msg = <PROCEED_GRANTED>)
-	then ( return <MovementAuthorityGranted>; )
-	else (
-	return <MovementAuthorityDenied>;
-	)
-	) else return <MovementAuthorityDenied>;
+		dcl msg : Interlocking`Order;
+		def mk_Interlocking`ProceedReply(message,rtr)
+			 = itl.RequestToProceed(rt, respTracks)
+		in ( msg := message; availableRoutes := rtr; );
+			if (msg = <PROCEED_GRANTED>)
+				then ( return <MovementAuthorityGranted>; )
+			else (
+				return <MovementAuthorityDenied>;
+			)
+		) else return <MovementAuthorityDenied>;
 	);
 \end{vdmsl}
 
@@ -364,7 +364,7 @@ A typical unit test verifies the functional properties of a class's functions an
 		uut := new Interlocking(routes);
 \end{vdmsl}
 
-We proceed to define some functional unit tests made for the ${Interlocking}$ in listing \ref{lst:itlunit2}, where two examples are shown.
+We proceed to define some functional unit tests made for the Interlocking class in listing \ref{lst:itlunit2}, where two examples are shown.
 
 \begin{vdmsl}[label=lst:itlunit2,caption={Two unit tests defined for the Interlocking class.}]
 	public Test_RouteInAvailableRoutes_ProceedGranted: () ==> ()
@@ -390,60 +390,36 @@ We proceed to define some functional unit tests made for the ${Interlocking}$ in
 	);
 \end{vdmsl}
 
-For the combinatorial tests, they are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants
+The combinatorial tests are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Again looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. The results are omitted here, but can be viewed in Appendix B. All tests can be seen in Appendix A.
 
+\begin{vdmsl}[label=lst:itlcomb1,caption={Four combinatorial tests that exercise our invariant functions in the Interlocking class.}]
+	T1: let trmap in set
+	 {{mk_Track(10,5,15,5,"AB",100) |-> false}} in
+	InvNoTrackAvailableAndOccupied(trmap, routes);
+	
+	T2: let trmap in set
+	 {{mk_Track(10,5,15,5,"AB",100) |-> true}} in
+	InvNoTrackAvailableAndOccupied(trmap, routes);
+	
+	T3: let rts in set {{{mk_Track(5,5,10,5,"AB",100),
+		mk_Track(2,5,10,5,"BA",100)},
+		{mk_Track(20,5,10,5,"AB",100),
+		mk_Track(30,5,10,5,"DE",100)}}} in
+			InvNoDuplicateTrack(rts);
+	
+	T4: let rt in set {{mk_Track(10,5,15,5,"AB",100),
+			mk_Track(15,5,20,5,"BC",100)},
+			{mk_Track(20,5,25,5,"AB",100),
+			 mk_Track(25,5,30,5,"DE",100)}} in
+	let trmap = {mk_Track(10,5,15,5,"AB",100) |-> false} in
+	InvIsTrackOccupied(rt, trmap);
+\end{vdmsl}
 
 \section{Simulation}
 
-\begin{itemize}
-\item Bullet point one
-\item Bullet point two
-\end{itemize}
+\section{Discussion}
 
-\begin{enumerate}
-\item Numbered list item one
-\item Numbered list item two
-\end{enumerate}
-
-\subsection{Subsection One}
-
-Quisque elit ipsum, porttitor et imperdiet in, facilisis ac diam. Nunc facilisis interdum felis eget tincidunt. In condimentum fermentum leo, non consequat leo imperdiet pharetra. Fusce ac massa ipsum, vel convallis diam. Quisque eget turpis felis. Curabitur posuere, risus eu placerat porttitor, magna metus mollis ipsum, eu volutpat nisl erat ac justo. Nullam semper, mi at iaculis viverra, nunc velit iaculis nunc, eu tempor ligula eros in nulla. Aenean dapibus eleifend convallis. Cras ut libero tellus. Integer mollis eros eget risus malesuada fringilla mattis leo facilisis. Etiam interdum turpis eget odio ultricies sed convallis magna accumsan. Morbi in leo a mauris sollicitudin molestie at non nisl.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{l l l}
-\hline
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
-\hline
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
-\hline
-\end{tabular}
-\caption{Table caption}
-\end{table}
-
-\subsection{Subsection Two}
-
-Donec eget ligula venenatis est posuere eleifend in sit amet diam. Vestibulum sollicitudin mauris ac augue blandit ultricies. Nulla facilisi. Etiam ut turpis nunc. Praesent leo orci, tincidunt vitae feugiat eu, feugiat a massa. Duis mauris ipsum, tempor vel condimentum nec, suscipit non mi. Fusce quis urna dictum felis posuere sagittis ac sit amet erat. In in ultrices lectus. Nulla vitae ipsum lectus, a gravida erat. Etiam quam nisl, blandit ut porta in, accumsan a nibh. Phasellus sodales euismod dolor sit amet elementum. Phasellus varius placerat erat, nec gravida libero pellentesque id. Fusce nisi ante, euismod nec cursus at, suscipit a enim. Nulla facilisi.
-
-Integer risus dui, condimentum et gravida vitae, adipiscing et enim. Aliquam erat volutpat. Pellentesque diam sapien, egestas eget gravida ut, tempor eu nulla. Vestibulum mollis pretium lacus eget venenatis. Fusce gravida nisl quis est molestie eu luctus ipsum pretium. Maecenas non eros lorem, vel adipiscing odio. Etiam dolor risus, mattis in pellentesque id, pellentesque eu nibh. Mauris nec ante at orci ultricies placerat ac non massa. Aenean imperdiet, ante eu sollicitudin vestibulum, dolor felis dapibus arcu, sit amet fermentum urna nibh sit amet mauris. Suspendisse adipiscing mollis dolor quis lobortis.
-
-\begin{equation}
-\label{eq:emc}
-e = mc^2
-\end{equation}
-
-\section{The Second Section}
-\label{S:2}
-
-Reference to Section \ref{S:1}. Etiam congue sollicitudin diam non porttitor. Etiam turpis nulla, auctor a pretium non, luctus quis ipsum. Fusce pretium gravida libero non accumsan. Donec eget augue ut nulla placerat hendrerit ac ut mi. Phasellus euismod ornare mollis. Proin tempus fringilla ultricies. Donec pretium feugiat libero quis convallis. Nam interdum ante sed magna congue eu semper tellus sagittis. Curabitur eu augue elit.
-
-Aenean eleifend purus et massa consequat facilisis. Etiam volutpat placerat dignissim. Ut nec nibh nulla. Aliquam erat volutpat. Nam at massa velit, eu malesuada augue. Maecenas sit amet nunc mauris. Maecenas eu ligula quis turpis molestie elementum nec at est. Sed adipiscing neque ac sapien viverra sit amet vestibulum arcu rhoncus.
-
-Vivamus pharetra nibh in orci euismod congue. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque lacus diam, congue vel laoreet id, iaculis eu sapien. In id risus ac leo pellentesque pellentesque et in dui. Etiam tincidunt quam ut ante vestibulum ultricies. Nam at rutrum lectus. Aenean non justo tortor, nec mattis justo. Aliquam erat volutpat. Nullam ac viverra augue. In tempus venenatis nibh quis semper. Maecenas ac nisl eu ligula dictum lobortis. Sed lacus ante, tempor eu dictum eu, accumsan in velit. Integer accumsan convallis porttitor. Maecenas pretium tincidunt metus sit amet gravida. Maecenas pretium blandit felis, ac interdum ante semper sed.
-
-In auctor ultrices elit, vel feugiat ligula aliquam sed. Curabitur aliquam elit sed dui rhoncus consectetur. Cras elit ipsum, lobortis a tempor at, viverra vitae mi. Cras sed urna sed eros bibendum faucibus. Morbi vel leo orci, vel faucibus orci. Vivamus urna nisl, sodales vitae posuere in, tempus vel tellus. Donec magna est, luctus non commodo sit amet, placerat et enim.
+\section{Conclusion}
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
