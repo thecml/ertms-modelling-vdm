@@ -11,8 +11,7 @@ tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
 
 instance variables
 	private respTracks : set of Interlocking`Track;
-	private availableRoutes : set of Interlocking`Route; -- from interlocking
-	private movementAuthorites : map nat to seq of Interlocking`Track;
+	private availableRoutes : set of Interlocking`Route := {}; -- local state of available routes
 	private itl : Interlocking;
 	
 	inv Interlocking`InvNoDuplicateTrack(availableRoutes);
@@ -26,9 +25,7 @@ operations
 		if(rt subset respTracks) then (
 				dcl msg : Interlocking`Order;
 				def mk_Interlocking`ProceedReply(message,rtr) = itl.RequestToProceed(rt, respTracks)
-				in (
-					msg := message;
-					availableRoutes := rtr; );
+				in ( msg := message; availableRoutes := rtr; );
 					if (msg = <PROCEED_GRANTED>)
 						then ( return <MovementAuthorityGranted>; )
 				 	else (
@@ -46,14 +43,12 @@ operations
 	GetResponsibleTracks() ==
 		return respTracks;
 	
-	public RadioBlockCenter : set of Interlocking`Route
-	 * set of Interlocking`Track * Interlocking ==> RadioBlockCenter
-	RadioBlockCenter(rts,trs,pitl) ==
+	public RadioBlockCenter : set of Interlocking`Track
+	 * Interlocking ==> RadioBlockCenter
+	RadioBlockCenter(trs,pitl) ==
 	atomic (
-		availableRoutes := rts;
 		respTracks := trs;
 		itl := pitl;
-		movementAuthorites := {|->};
 	);
 		
 functions

@@ -41,7 +41,7 @@ operations
 	Test_EnterCalled_ItlChangeStateForTrack() ==
 	(
 		dcl occupiedTracks : set of Interlocking`Track;
-		uut.Enter();
+		dcl speed  : nat1 := uut.Enter();
 		occupiedTracks := itl.GetTrackTable();
 		assertTrue(track in set occupiedTracks);
 	);
@@ -50,7 +50,7 @@ operations
 	Test_LeaveCalled_ItlChangeStateForTrack() ==
 	(
 		dcl occupiedTracks : set of Interlocking`Track;
-		uut.Enter();
+		dcl speed  : nat1 := uut.Enter();
 		uut.Leave();
 		occupiedTracks := itl.GetTrackTable();
 		assertTrue(track not in set occupiedTracks);

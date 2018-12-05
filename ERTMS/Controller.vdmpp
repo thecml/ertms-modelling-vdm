@@ -1,6 +1,6 @@
 class Controller
 types
--- TODO Define types here
+
 instance variables
 	private itl : Interlocking;
 	private routes : seq of Interlocking`Route;

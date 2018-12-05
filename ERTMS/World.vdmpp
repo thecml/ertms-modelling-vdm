@@ -41,7 +41,7 @@ values
 	routeB, routeLU, routeLL], itl);
 	
 	--global radioblockcenter, no available routes, covers all tracks
-	private rbc = new RadioBlockCenter({}, allTracks, itl);
+	private rbc = new RadioBlockCenter(allTracks, itl);
 		
 	-- Eurobalise maps for trains
 	private trackEbMap = {track1 |-> new Eurobalise(itl, track1), track2 |-> new Eurobalise(itl, track2),

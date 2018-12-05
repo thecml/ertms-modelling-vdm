@@ -17,17 +17,15 @@ types
 									endX : nat
 									endY : nat
 									description : seq of char
-									maxSpeed : nat;
+									maxSpeed : nat1;
 	public Route = set of Track;
-	public RouteRequest :: rbc : RadioBlockCenter
-												 rt : Route
 										
 instance variables
 	private trackTable : map Track to bool; -- track table with physical state of track
 	private availableRoutes : set of Route; -- routes from controller to be used
 	
 	inv InvNoDuplicateTrack(availableRoutes);
---	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
+	inv InvNoTrackAvailableAndOccupied(trackTable, availableRoutes);
 	
 operations
 	public RequestToProceed: Route * set of Track ==> ProceedReply
@@ -65,8 +63,7 @@ operations
 		-- then add it to routesAvaliable and clear trackTable -- else do nothing	
 		if (rt not in set availableRoutes and
 			forall tr in set rt & tr not in set dom trackTable
-				or trackTable(tr) = false)
-					then (
+				or trackTable(tr) = false) then (
 							availableRoutes := availableRoutes union {rt};
 							trackTable := trackTable ++ { tr |-> false | tr in set GetTracksInRoutes({rt})};	
 					) else skip;	
@@ -75,11 +72,16 @@ operations
 		SetTrackState(tr, sta) ==
 		-- if train enters, set specific track as occupied
 		-- if train leaves, clear track
-		if(sta = <TRAIN_ENTER>) then
-				trackTable := trackTable ++ {tr |-> true}
+		if(sta = <TRAIN_ENTER>) then (
+			atomic (
+				trackTable := trackTable ++ {tr |-> true};
+				availableRoutes := {rts | rts in set availableRoutes
+						  & rts inter {tr} = {}};
+			);
+		)
 		else if (sta = <TRAIN_LEAVE>) then
 				trackTable := trackTable ++ {tr |-> false}
-		post tr in set dom trackTable;
+		pre tr in set dom trackTable;
 			
 	pure public GetAvaliableRoutes: () ==> set of Route
 	GetAvaliableRoutes() ==

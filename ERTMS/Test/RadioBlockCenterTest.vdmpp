@@ -19,7 +19,7 @@ operations
 	public RadioBlockCenterTest: () ==> RadioBlockCenterTest
 	RadioBlockCenterTest() ==
 	(
-		uut := new RadioBlockCenter(routes, tracks, new Interlocking(routes));
+		uut := new RadioBlockCenter(tracks, new Interlocking(routes));
 	);
 	
 	public Test_CtorCalledWithTracks_TracksInResTracks: () ==> ()
@@ -27,14 +27,7 @@ operations
 	(
 		assertTrue(uut.GetResponsibleTracks() = tracks);
 	);
-	
-	public Test_RouteWasSetAsAvailable_RouteIsAvailable: () ==> ()
-	Test_RouteWasSetAsAvailable_RouteIsAvailable() ==
-	(
-		dcl route : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
-		assertTrue(route in set uut.GetAvailableRoutes());
-	);
-	
+
 	public Test_DoNotSetRouteAsAvailable_RouteIsUnavailable: () ==> ()
 	Test_DoNotSetRouteAsAvailable_RouteIsUnavailable() ==
 	(

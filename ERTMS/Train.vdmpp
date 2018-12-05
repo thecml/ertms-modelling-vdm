@@ -19,14 +19,13 @@ instance variables
 --	inv forall rt in seq routeTable & InvTrackIsConnected(rt);
 	inv state = <Running> and currentSpeed >= 0
 	 or state = <Stopped> and currentSpeed = 0
-	 or state = <WaitingForSignal> and currentSpeed = 0;
+	 or state = <WaitingForSignal> and currentSpeed = 0
+	 or state = <Finished> and currentSpeed = 0;
 
 operations
 	public Step: () ==> ()
 	Step() ==
-	( 
-	    Drive();
-	 );
+ 		Drive();
 	 
 	 private Drive: () ==> ()
 	 Drive() ==
@@ -41,8 +40,7 @@ operations
 					UpdateStats();
 					for track in GetTracksInRoute(currentRoute) do (
 						dcl currentEb : Eurobalise := transponders(track);
-						currentSpeed := track.maxSpeed;
-						currentEb.Enter();
+						currentSpeed := currentEb.Enter();
 						posX := track.endX;
 						posY := track.endY;
 						currentEb.Leave();
@@ -51,7 +49,7 @@ operations
 					routeTable := tl routeTable;
 					if (routeTable = []) then (
 						currentSpeed := 0;
-						state := <Stopped>;
+						state := <Finished>;
 					);
 					UpdateStats();
 			) else (
@@ -98,10 +96,6 @@ operations
 	Stop() ==
 		state := <Stopped>;
 		
-	public GetRoute: () ==> Interlocking`Route
-	GetRoute() ==
-		return hd routeTable;
-		
 	public GetId: () ==> seq of char
 	GetId() ==
 		return id;
@@ -115,8 +109,6 @@ operations
 	 * RadioBlockCenter * seq of char ==> Train
 	 Train(trans, prbc, pid) ==
 	 atomic (
-	 	--posX := rtmap(1).startX;
-	 	--posY := rtmap(1).startY;
 	 	transponders := trans;
 	 	rbc := prbc;
 	 	id := pid;

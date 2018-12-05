@@ -37,32 +37,32 @@ operations
 		assertTrue(card availableRoutes = 0);
 	);
 	
-	public Test_RouteInAvaRoutes_ProceedGranted: () ==> ()
-	Test_RouteInAvaRoutes_ProceedGranted() ==
+	public Test_RouteInAvailableRoutes_ProceedGranted: () ==> ()
+	Test_RouteInAvailableRoutes_ProceedGranted() ==
 	(
 		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
 		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute, testRoute);
 		assertTrue(msg.message = <PROCEED_GRANTED>);
 	);
 	
-	public Test_RouteNotInAvaRoutes_ProceedDenied: () ==> ()
-	Test_RouteNotInAvaRoutes_ProceedDenied() ==
+	public Test_RouteNotInAvailableRoutes_ProceedDenied: () ==> ()
+	Test_RouteNotInAvailableRoutes_ProceedDenied() ==
 	(
 		dcl testRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
 		dcl msg : Interlocking`ProceedReply := uut.RequestToProceed(testRoute, testRoute);
 		assertTrue(msg.message = <PROCEED_DENIED>);
 	);
 	
-	public Test_RouteIsRequested_RoutePlacedInAvaRoutes: () ==> ()
-	Test_RouteIsRequested_RoutePlacedInAvaRoutes() ==
+	public Test_RouteIsRequested_RoutePlacedInAvailableRoutes: () ==> ()
+	Test_RouteIsRequested_RoutePlacedInAvailableRoutes() ==
 	(
 		dcl reqRoute : Interlocking`Route := {mk_Interlocking`Track(11,4,16,4,"AB",100)};
 		uut.RequestRoute(reqRoute);
 		assertTrue(reqRoute in set uut.GetAvaliableRoutes());
 	);
 	
-	public Test_TrainEntersAndLeavesTrack_Trackoccupied: () ==> ()
-	Test_TrainEntersAndLeavesTrack_Trackoccupied() ==
+	public Test_TrainEntersAndLeavesTrack_TrackChangesState: () ==> ()
+	Test_TrainEntersAndLeavesTrack_TrackChangesState() ==
 	(
 		dcl track : Interlocking`Track := mk_Interlocking`Track(10,5,15,5,"AB",100);
 		uut.SetTrackState(track, <TRAIN_ENTER>);

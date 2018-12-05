@@ -7,11 +7,14 @@ instance variables
 	private track: Interlocking`Track;
 	
 operations
-	public Enter: () ==> ()
+	public Enter: () ==> nat1
 	Enter() ==
+	(
 		-- notify interlocking that train has entered track
 		-- and return permitted speed for the track
 		itl.SetTrackState(track, <TRAIN_ENTER>);
+		return track.maxSpeed;
+	);
 		
 	public Leave: () ==> ()
 	Leave() ==
