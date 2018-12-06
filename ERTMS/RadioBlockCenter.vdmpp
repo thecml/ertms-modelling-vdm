@@ -10,7 +10,7 @@ tracks = {mk_Interlocking`Track(10,5,15,5,"AB",100),
 	mk_Interlocking`Track(25,5,30,5,"EF",110)}
 
 instance variables
-	private respTracks : set of Interlocking`Track;
+	private respTracks : set of Interlocking`Track := {};
 	private availableRoutes : set of Interlocking`Route := {}; -- local state of available routes
 	private itl : Interlocking;
 	
