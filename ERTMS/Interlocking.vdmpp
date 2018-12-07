@@ -47,7 +47,7 @@ operations
 			) else (
 				return ProceedDenied(respTrs)
 			)
-	pre card prt > 0;
+	pre card prt > 0 and card GetTracksInRoutes({prt}) > 0;
 	
 	private ProceedGranted: set of Track ==> ProceedReply
 	ProceedGranted(respTrs) ==
@@ -66,7 +66,8 @@ operations
 				or trackTable(tr) = false) then (
 							availableRoutes := availableRoutes union {rt};
 							trackTable := trackTable ++ { tr |-> false | tr in set GetTracksInRoutes({rt})};	
-					) else skip;	
+					) else skip
+	pre card GetTracksInRoute(rt) > 0;
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
@@ -78,8 +79,7 @@ operations
 				availableRoutes := {rts | rts in set availableRoutes
 						  & rts inter {tr} = {}};
 			);
-		)
-		else if (sta = <TRAIN_LEAVE>) then
+		) else if (sta = <TRAIN_LEAVE>) then
 				trackTable := trackTable ++ {tr |-> false}
 		pre tr in set dom trackTable;
 			
@@ -99,23 +99,22 @@ operations
 	
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
+	(
 		atomic (
 			availableRoutes := rts;
 			trackTable := { tr |-> false | tr in set GetTracksInRoutes(rts)};
-		 );
-		 
-	pure public GetTracksInRoutes: set of Route ==> set of Track
-	GetTracksInRoutes(rts) ==
-		if (card rts > 0) then
-		(
-			dcl trs : set of Track := {};
-			for all rt in set rts do
-				for all tr in set rt do
-					trs := trs union {tr};
-			return trs;
-		) else return {};
-		
+		);
+	)
+				
 functions
+	public GetTracksInRoute: Route -> set of Track
+	GetTracksInRoute(rt) ==
+		{tr | tr in set rt};
+		
+	public GetTracksInRoutes: set of Route -> set of Track
+	GetTracksInRoutes(rts) ==
+		dunion {tr | tr in set {rt | rt in set rts}};
+
 	public InvNoTrackAvailableAndOccupied: map Track to bool * set of Route -> bool
 	InvNoTrackAvailableAndOccupied(trmap, rts) ==
 	-- A track cannot be available and occupied.

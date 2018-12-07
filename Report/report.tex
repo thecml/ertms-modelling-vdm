@@ -342,10 +342,12 @@ The Train is the driver of the system and each created has a route table with on
 	);
 \end{vdmsl}
 
-\section{Unit and combinatorial testing}
+\section{Validation}
 
+\subsection{Unit testing}
 A typical unit test verifies the functional properties of a class's functions and operations, often conducted in isolation with stubs for any external dependencies. A unit test invokes the unit under test (a class) with some input and evaluates whether the output satisfies what was expected. VDM++ offers unit testing options with VDMUnit, which we have used to test the four control classes in our system and shall explore in a bit. Additionally VDM++ provides a framework for combinatorial testing used to verify pre, post and invariant conditions in our classes. Both methodologies have been applied in this project and the complete set of sets can be found in the attached code, see Appendix A.
 
+\subsection{Combinatorial testing}
 The combinatorial tests are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. The results are omitted here, but can be viewed in Appendix B. All tests can be seen in Appendix A.
 
 \begin{vdmsl}[label=lst:itlcomb1,caption={Four combinatorial tests that exercise our invariant functions in the Interlocking class.}]
@@ -371,16 +373,23 @@ The combinatorial tests are defined in the classes and can be seen to the full e
 	InvIsTrackOccupied(rt, trmap);
 \end{vdmsl}
 
+\subsection{Proof obligations}
+
+- Write about proof obligations here.
+
 \section{Simulation}
 
 To simulate trains interacting with the control system, we create a $World$ class with two trains running different tracks, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a function $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure X shows the track terrain with colors indicating routes for the trains. Both must traverse a line of each color in order to finish. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix C.
 
-\section{Discussion}
+\section{Results}
 
 - Difficulties.
 - How did the model perform.
 - Future work.
-- Proof obligations.
+
+\section{Alternatives to the model}
+
+- Future work.
 
 \section{Conclusion}
 

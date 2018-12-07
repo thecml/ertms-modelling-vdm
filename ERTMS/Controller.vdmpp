@@ -13,10 +13,11 @@ operations
 	private SendRouteRequest:() ==> ()
 	SendRouteRequest() ==
 		-- send a random selected route into the Interlocking as a route request.
+		if(len routes > 0) then
 		(dcl rn : nat := MATH`rand(len routes)+1;
-				itl.RequestRoute(routes(rn));
+			itl.RequestRoute(routes(rn));
 		);
-		
+	
 	public Controller : seq of Interlocking`Route * Interlocking ==> Controller
 	Controller(rts, pitl) ==
 	atomic (

@@ -27,8 +27,8 @@ operations
 	Step() ==
  		Drive();
 	 
-	 private Drive: () ==> ()
-	 Drive() ==
+	private Drive: () ==> ()
+	Drive() ==
 	 (
 		if (state = <Running> or state = <WaitingForSignal>
 		 and len routeTable > 0) then (
@@ -60,28 +60,27 @@ operations
 		) else UpdateStats();
 	 );
 	 
-	 private UpdateStats: () ==> ()
-	 UpdateStats() ==
+	private UpdateStats: () ==> ()
+	UpdateStats() ==
 	 (
 	 		trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
 	 		if(len trainLog > 3) then
 	 			trainLog := tl trainLog;
 	 );
 	 	
-	 public AddRoute: Interlocking`Route ==> ()
-	 AddRoute(rt) ==
+	public AddRoute: Interlocking`Route ==> ()
+	AddRoute(rt) ==
 	 	routeTable := routeTable ^ [rt]
 	 pre card rt > 0
-	 post rt = routeTable(len routeTable);
+	 post rt in set elems routeTable;
 	 	
-	 pure public GetStats: () ==> seq of TrainLogEntry
-	 GetStats() ==
-	 	return trainLog;
+	pure public GetStats: () ==> seq of TrainLogEntry
+	GetStats() ==
+		return trainLog;
 	 	
 	pure public GetTracksInRoute: Interlocking`Route ==> seq of Interlocking`Track
 	GetTracksInRoute(rt) ==
-		if (card rt > 0) then
-		(
+		if (card rt > 0) then (
 			dcl trs : seq of Interlocking`Track := [];
 			for all tr in set rt do
 				trs := trs ^ [tr];
