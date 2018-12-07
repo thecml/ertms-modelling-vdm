@@ -37,16 +37,16 @@ ERTMS \sep ETCS \sep VDM++ \sep Formal methods \sep Interlocking \sep Safety
 
 \section{Introduction}
 \label{S:introduction}
-The railway domain was identified as a grand challenge of computing science in 2004 because it is understandable by the general public, provides useful features in terms of transportation and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
+The railway domain was identified as a grand challenge of computing science by (\citet{Challenge}) in 2004 because it is understandable by the general public, provides useful features in terms of transportation and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
 
-The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems. Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3. We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MA) for that section from the RBC, which will be further explained in section X. ERTMS defines end of authority (EoA) as the point the train is allowed to move to. We consider this aspect as well.
+The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems, as detailed in (\citet{Ghazel2014}). Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3 detailed by (\citet{Outlook2012}). We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MA) for that section from the RBC, which will be further explained in section X. ERTMS defines end of authority (EoA) as the point the train is allowed to move to. We consider this aspect as well.
 
 Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. The train control (EVC) requests movement authorities from the RBC over GSM-R. A typical national rail way will have multiple RBC's for each region. The RBC's communicate with a central interlocking service, that receives the physical location of trains using the Eurobalises, in order to either grant or deny movement authority to a train.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\linewidth]{ERTMS.png}
-	\caption{An overview of the ERTMS/ETCS level 2 components.}
+	\caption{An overview of the ERTMS/ETCS level 2 components. Source: (\citet{Berger2018})}
 	\label{fig:ertmsoverview}
 \end{figure}
 
@@ -62,13 +62,13 @@ R5: The system shall not provide an MA for a track that is occupied by a train.\
 R6: The RBC shall not answer MA's for tracks it is not responsible for.\\
 R7: The eurobalise shall report train movement to the interlocking system.\\
 
-The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature X and X, that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R8}. UML will be used to show some of the logical VDM++ classes and their relationships. From the specification of ERTMS we can define a typical usage scenario for a train that wishes to enter a track. Given a train \textit{T1}, a track TR1 from a set of tracks (i=1,..,n), an \textit{RBC} responsible for tracks \textit{TR\textsubscript{n}}, a eurobalise \textit{Eb} mounted on the track that registers physical movement and a central interlocking service \textit{ITL}.
+The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature (\citet{Berger2018}) and (\citet{Ghazel2014}), that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R8}. UML will be used to show some of the logical VDM++ classes and their relationships. From the specification of ERTMS we can define a typical usage scenario for a train that wishes to enter a track. Given a train \textit{T1}, a track TR1 from a set of tracks (i=1,..,n), an \textit{RBC} responsible for tracks \textit{TR\textsubscript{n}}, a eurobalise \textit{Eb} mounted on the track that registers physical movement and a central interlocking service \textit{ITL}.
 
 \begin{itemize}[noitemsep]
-	\item \textit{T1} wants to enter track \textit{TR1}. \textit{T1} requests MA for \textit{TR1} from RBC.
+	\item \textit{T} wants to start a route \textit{Rt} and enter track \textit{Tr}. \textit{T} requests MA for route \textit{Rt} from RBC.
 	\item RBC contacts the ITL to verify the request.
-	\item RBC grants MA to train \textit{T1} for track TR1.
-	\item \textit{T1} enters track TR1.
+	\item RBC grants MA to train \textit{T} for route \textit{Rt}.
+	\item \textit{T} enters track \textit{Tr}.
 	\item Eb registers movement and informs ITL.
 \end{itemize}
 
@@ -77,7 +77,7 @@ This functionality will be further explored in the model architecture and design
 \section{Model architecture}
 \label{S:systemarch}
 
-The architecture of the model represents the entire system as entities, that are later defined in VDM++ as classes, that encapsulate functionality related to the individual entity. We consider the purpose of our model, that is to express and simulate several important aspects of ERMTS/ETCS, and use the primary components of such system as our entities. These can seen in figure \ref{fig:ertmscontrolarchitecture} that show a way to model the control architecture of ERTMS based in the real specification set for ERTMS level 2 detailed in X, but junction control and route guidance has been omitted.
+The architecture of the model represents the entire system as entities, that are later defined in VDM++ as classes, that encapsulate functionality related to the individual entity. We consider the purpose of our model, that is to express and simulate several important aspects of ERMTS/ETCS, and use the primary components of such system as our entities. These can seen in figure \ref{fig:ertmscontrolarchitecture} that show a way to model the control architecture of ERTMS based in the real specification set for ERTMS level 2 detailed in (\citet{Berger2018}), but junction control and route guidance has been omitted.
 
 \begin{figure}[h]
 	\centering
@@ -438,8 +438,8 @@ The combinatorial tests are defined in the classes and can be seen to the full e
 
 %% References with bibTeX database:
 
-\bibliographystyle{model1-num-names}
-\bibliography{sample.bib}
+\bibliographystyle{plainnat}
+\bibliography{literature}
 
 %% Authors are advised to submit their bibtex database files. They are
 %% requested to list a bibtex style file in the manuscript if they do
