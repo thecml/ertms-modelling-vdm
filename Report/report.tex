@@ -344,53 +344,9 @@ The Train is the driver of the system and each created has a route table with on
 
 \section{Unit and combinatorial testing}
 
-A typical unit test verifies the functional properties of a class's functions and operations, often conducted in isolation with stubs for any external dependencies. A unit test invokes the unit under test (a class) with some input and evaluates whether the output satisfies what was expected. VDM++ offers unit testing options with VDMUnit, which we have used to test the four control classes in our system and shall explore in a bit. Additionally VDM++ provides a framework for combinatorial testing used to verify pre, post and invariant conditions in our classes. Both methodologies have been applied in this project and the complete set of sets can be found in the attached code, see Appendix A. We start by creating the initial environment for the tests seen in listing \ref{lst:itlunit1}.
+A typical unit test verifies the functional properties of a class's functions and operations, often conducted in isolation with stubs for any external dependencies. A unit test invokes the unit under test (a class) with some input and evaluates whether the output satisfies what was expected. VDM++ offers unit testing options with VDMUnit, which we have used to test the four control classes in our system and shall explore in a bit. Additionally VDM++ provides a framework for combinatorial testing used to verify pre, post and invariant conditions in our classes. Both methodologies have been applied in this project and the complete set of sets can be found in the attached code, see Appendix A.
 
-\begin{vdmsl}[label=lst:itlunit1,caption={The test uses some predefined values and initiates the UUT in the constructor.}]
-	class InterlockingTest is subclass of TestCase
-	values
-	routes = {{mk_Interlocking`Track(10,5,15,5,"AB",100)},
-		{mk_Interlocking`Track(15,5,20,5,"BC",110)},
-		{mk_Interlocking`Track(20,5,25,5,"CD",110)},
-		{mk_Interlocking`Track(25,5,30,5,"DE",110)},
-		{mk_Interlocking`Track(25,5,30,5,"EF",110)}};
-	
-	instance variables
-	private uut: Interlocking;
-
-	operations
-	public InterlockingTest: () ==> InterlockingTest
-	InterlockingTest() ==
-		uut := new Interlocking(routes);
-\end{vdmsl}
-
-We proceed to define some functional unit tests made for the Interlocking class in listing \ref{lst:itlunit2}, where two examples are shown.
-
-\begin{vdmsl}[label=lst:itlunit2,caption={Two unit tests defined for the Interlocking class.}]
-	public Test_RouteInAvailableRoutes_ProceedGranted: () ==> ()
-	Test_RouteInAvailableRoutes_ProceedGranted() ==
-	(
-	dcl testRoute : Interlocking`Route
-	 := {mk_Interlocking`Track(10,5,15,5,"AB",100)};
-	dcl msg : Interlocking`ProceedReply
-	 := uut.RequestToProceed(testRoute, testRoute);
-	assertTrue(msg.message = <PROCEED_GRANTED>);
-	);
-	
-	public Test_TrainEntersAndLeavesTrack_TrackChangesState: ()
-	 ==> ()
-	Test_TrainEntersAndLeavesTrack_TrackChangesState() ==
-	(
-	dcl track : Interlocking`Track
-	 := mk_Interlocking`Track(10,5,15,5,"AB",100);
-	uut.SetTrackState(track, <TRAIN_ENTER>);
-	assertTrue(track in set uut.GetTrackTable());
-	uut.SetTrackState(track, <TRAIN_LEAVE>);
-	assertTrue(track not in set uut.GetTrackTable());
-	);
-\end{vdmsl}
-
-The combinatorial tests are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Again looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. The results are omitted here, but can be viewed in Appendix B. All tests can be seen in Appendix A.
+The combinatorial tests are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. The results are omitted here, but can be viewed in Appendix B. All tests can be seen in Appendix A.
 
 \begin{vdmsl}[label=lst:itlcomb1,caption={Four combinatorial tests that exercise our invariant functions in the Interlocking class.}]
 	T1: let trmap in set
@@ -417,7 +373,14 @@ The combinatorial tests are defined in the classes and can be seen to the full e
 
 \section{Simulation}
 
+To simulate trains interacting with the control system, we create a $World$ class with two trains running different tracks, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a function $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure X shows the track terrain with colors indicating routes for the trains. Both must traverse a line of each color in order to finish. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix C.
+
 \section{Discussion}
+
+- Difficulties.
+- How did the model perform.
+- Future work.
+- Proof obligations.
 
 \section{Conclusion}
 
@@ -437,6 +400,8 @@ The combinatorial tests are defined in the classes and can be seen to the full e
 %%   \citet{key}         ==>>  Author [#]
 
 %% References with bibTeX database:
+
+\section*{LITERATURE}
 
 \bibliographystyle{plainnat}
 \bibliography{literature}
