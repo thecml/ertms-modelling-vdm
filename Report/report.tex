@@ -122,7 +122,7 @@ The controller controls at what rate new routes are placed into the interlocking
 
 The interlocking has three primary operations with core functionality, defined as such because they change the state of the class. First operation accepts new route requests from the controller for routes $R_{n}$ and place it into its locking table (available routes) if it not already occupied. We choose a set for these, as they are finite, the order is not important and duplicate elements should not be significant. Sets also support some useful operators which we will see. The second operation receive and store information from corresponding Eurobalises (track trackers) about the physical movement of trains. We choose a mapping for these, since they define lookup operators that allow us to assert if a particular track is occupied or not. The $trackTable$ maps tracks with a given coordinate to either a true or false value, if the track is occupied or not. Third operation respond to the RadionBlockCenter requesting a MA (Movement Authority) on the behalf of trains. We start be defining the implemented types and instance variables (listing \ref{lst:itl1}).
 
-Notice the atomic use in the constructor to defer invariant assertion after the assignments.
+Notice the atomic use in the constructor to defer invariant assertion after the assignment.
 
 \begin{vdmsl}[label=lst:itl1,caption=Types and state information and constructor for the Interlocking class.]
 	class Interlocking
@@ -174,7 +174,7 @@ The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes
 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;	
 \end{vdmsl}
 
-Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and tracks are not occupied, we add it to $availableRoutes$ and clear its track. $GetTracksInRoutes()$ is a utility operation that returns the tracks in a route.
+Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and tracks are not occupied, we add it to $availableRoutes$ and clear its track. $GetTracksInRoutes()$ is a function that returns the tracks in a route.
 
 \begin{vdmsl}[label=lst:itl3,caption=Definition of the SendRouteReques() operation.]
 	public RequestRoute: (Route) ==> ()
@@ -344,6 +344,8 @@ The Train is the driver of the system and each created has a route table with on
 
 \section{Validation}
 
+This section describes some of the validation techniques used to ensure correctness of the model. Unit testing was used to test functional properties of classes, combinatorial testing to check logical assertions of the model and lastly proof obligations to find points of interest in the model where state is changed and that state has to guarantee some invariant or logical expression.
+
 \subsection{Unit testing}
 A typical unit test verifies the functional properties of a class's functions and operations, often conducted in isolation with stubs for any external dependencies. A unit test invokes the unit under test (a class) with some input and evaluates whether the output satisfies what was expected. VDM++ offers unit testing options with VDMUnit, which we have used to test the four control classes in our system and shall explore in a bit. Additionally VDM++ provides a framework for combinatorial testing used to verify pre, post and invariant conditions in our classes. Both methodologies have been applied in this project and the complete set of sets can be found in the attached code, see Appendix A.
 
@@ -375,23 +377,34 @@ The combinatorial tests are defined in the classes and can be seen to the full e
 
 \subsection{Proof obligations}
 
-- Write about proof obligations here.
+Overture can generate proof obligations for VDM++ that can be used after model creation to find points of interest in regards to invariant checks, logical assertions, map applications and type compatibilities. The obligations of the model were evaluated and asserted at each point to either help improve the model (eg. by strengthening a precondition), understand where state variables were changed and applied, or to get an overview of invariant checks. Below are three examples from our proof obligation review:
+
+\begin{itemize}
+	\item 1. Interlocking-L40: State invariant holds.
+	\item 2. Interlocking-L134: Legal map application.
+	\item 3. Train-L68: Operation establishes postcondition.
+\end{itemize}
+
+The first obligation tells us that the state invariant imposed $availableRoutes$ holds given the assignment of the previously available routes apart from those now reserved in the route request. The second state that the map application done in $InvIsTrackOccupied()$ is legal as the index exists in the domain set of the map. The third states that the operation $AddRoute()$ upholds its postcondition by adding the route to its sequence.
 
 \section{Simulation}
 
-To simulate trains interacting with the control system, we create a $World$ class with two trains running different tracks, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a function $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure X shows the track terrain with colors indicating routes for the trains. Both must traverse a line of each color in order to finish. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix C.
+To simulate trains interacting with the control system, we create a $World$ class with two trains running different tracks, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a function $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure \ref{fig:testtrack} shows the track terrain with colors indicating routes for the trains. Both must traverse the line indicated by their color in order to finish. The ERTMS icons show boundaries between tracks. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix C.
 
-\section{Results}
-
-- Difficulties.
-- How did the model perform.
-- Future work.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TrainTrack.png}
+	\caption{Two trains on a test track used in the simulation. One follows the green-orange-green route, another the blue-orange-blue route.}
+	\label{fig:testtrack}
+\end{figure}
 
 \section{Alternatives to the model}
 
-- Future work.
+The nature of a real-life ERTMS application is obviously real time, concurrent and multi-threaded. The model of ERTMS level 2 presented in this report is made sequential, that is the execution is performed in steps, as the trains iteratively requests routes to traverse from their route table and cannot move simultaneously, to make it simple for its purpose of conveying the essentials of ERTMS. VDM++ offers a real-time approach to model creation where we define threads as concurrent classes of execution and let our $World$ class implement a $TimeStamp$ class that introduce the notion of time in our model. An obvious benefit of making the model threaded and influenced by time is the transferability to the real-world domain, but introducing this complexity requires us to consider synchronization aspects of threads, shared data and timing constraints. This is a evident next step for this model.
 
 \section{Conclusion}
+
+In this report we have argued why ERTMS and ETCS are indeed needed to cope with interoperability issues presented in current nation-based railway technologies, noted in (\citet{Commission2018}) and why it is suitable for formal modeling, then described the architecture behind it and presented a model that all-though simplified, demonstrate the primary entities and interactions in the VDM++ language using Overture. VDM++ constructs were used where appropriate, as we used a set to represent the list of available routes at the Interlocking component, a map to model the physical track table and used a sequence to hold the routes each train has to traverse. We used three techniques Overture offers to validate the correctness of our model and ran a simulation to show the mutual exclusivity of routes and tracks that ETCS impose.
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
@@ -409,8 +422,6 @@ To simulate trains interacting with the control system, we create a $World$ clas
 %%   \citet{key}         ==>>  Author [#]
 
 %% References with bibTeX database:
-
-\section*{LITERATURE}
 
 \bibliographystyle{plainnat}
 \bibliography{literature}
