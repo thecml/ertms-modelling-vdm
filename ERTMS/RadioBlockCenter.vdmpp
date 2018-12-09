@@ -13,7 +13,6 @@ instance variables
 	private respTracks : set of Interlocking`Track := {};
 	private availableRoutes : set of Interlocking`Route := {}; -- local state of available routes
 	private itl : Interlocking;
-	
 	inv Interlocking`InvNoDuplicateTrack(availableRoutes);
 
 operations	
@@ -29,11 +28,10 @@ operations
 					if (msg = <PROCEED_GRANTED>)
 						then ( return <MovementAuthorityGranted>; )
 				 	else (
-				--availableRoutes := {{tr} | art in set availableRoutes & art inter {tr} = {}};
-				return <MovementAuthorityDenied>;
+						return <MovementAuthorityDenied>;
 				)
-		) else return <MovementAuthorityDenied>;
-	);
+		) else return <MovementAuthorityDenied>
+	) pre card Interlocking`GetTracksInRoute(rt) > 0;
 		
 	public GetAvailableRoutes: () ==> set of Interlocking`Route
 	GetAvailableRoutes() ==

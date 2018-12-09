@@ -4,23 +4,23 @@ values
 	--First upper part of world
 	private track1 = mk_Interlocking`Track(10,10,15,10,"U-AB",100);
 	private track2 = mk_Interlocking`Track(15,10,20,10,"U-BC",100);
-	private track3 = mk_Interlocking`Track(20,10,17,7,"U-CD",50);
+	private track3 = mk_Interlocking`Track(20,10,17,8,"U-CD",50);
 	
 	--First lower part of world
-	private track4 = mk_Interlocking`Track(10,5,15,5,"L-AB",100);
-	private track5 = mk_Interlocking`Track(15,5,20,5,"L-BC",100);
-	private track6 = mk_Interlocking`Track(20,5,17,7,"L-CD",50);
+	private track4 = mk_Interlocking`Track(11,5,16,5,"L-AB",100);
+	private track5 = mk_Interlocking`Track(16,5,21,5,"L-BC",100);
+	private track6 = mk_Interlocking`Track(21,5,18,6,"L-CD",50);
 	
 	--Bridge
-	private track7 = mk_Interlocking`Track(17,7,25,7,"B-AB",10);
+	private track7 = mk_Interlocking`Track(20,7,25,7,"B-AB",10);
 	
 	--Last upper part of world
 	private track8 = mk_Interlocking`Track(25,7,28,10,"U-DE",90);
-	private track9 = mk_Interlocking`Track(28,10,35,10, "U-EF",90);
+	private track9 = mk_Interlocking`Track(28,10,32,10, "U-EF",90);
 	
 	--Last lower part of world
-	private track10 = mk_Interlocking`Track(25,7,28,5,"L-DE", 90);
-	private track11 = mk_Interlocking`Track(28,5,33,5,"L-EF", 90);
+	private track10 = mk_Interlocking`Track(25,7,29,9,"L-DE", 90);
+	private track11 = mk_Interlocking`Track(29,9,33,9,"L-EF", 90);
 	
 	--five routes for all parts of the world
 	private routeFU = {track1, track2, track3};

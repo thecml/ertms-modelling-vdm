@@ -71,7 +71,7 @@ operations
 
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 		SetTrackState(tr, sta) ==
-		-- if train enters, set specific track as occupied
+		-- if train enters, set specific track as occupied and update routes
 		-- if train leaves, clear track
 		if(sta = <TRAIN_ENTER>) then (
 			atomic (
@@ -91,11 +91,9 @@ operations
 	GetAvaliableRoutes(trs) ==
 		return (availableRoutes inter {trs});
 	
-	pure public GetTrackTable : () ==> set of Track
-	GetTrackTable() ==
-	(
+	pure public GetOccupiedTracks : () ==> set of Track
+	GetOccupiedTracks() ==
 		return {tr | tr in set dom trackTable & trackTable(tr) = true};
-	);
 	
 	public Interlocking: set of Route ==> Interlocking
 	Interlocking(rts) ==
@@ -122,10 +120,10 @@ functions
 		& tr not in set dom trmap or trmap(tr) = false;
 	
 	public InvNoDuplicateTrack: set of Route -> bool
-	InvNoDuplicateTrack(srt) ==
+	InvNoDuplicateTrack(rts) ==
 	-- a route cannot contain the same track twice,
 	-- but two routes can contain the same track
-	forall rt1 in set srt &
+	forall rt1 in set rts &
 	  forall tr1,tr2 in set rt1 & tr1 <> tr2
 	 		=> tr1.startX <> tr2.startX or tr1.endX <> tr2.endX 
 	 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;

@@ -30,34 +30,31 @@ operations
 	private Drive: () ==> ()
 	Drive() ==
 	 (
-		if (state = <Running> or state = <WaitingForSignal>
-		 and len routeTable > 0) then (
+		if (len routeTable > 0
+		 and state = <Running> or state = <WaitingForSignal>) then (
 			dcl currentRoute : Interlocking`Route := hd routeTable;
 			UpdateStats();
 			if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
 			then (
-					state := <Running>;
 					UpdateStats();
 					for track in GetTracksInRoute(currentRoute) do (
 						dcl currentEb : Eurobalise := transponders(track);
-						currentSpeed := currentEb.Enter();
+						atomic (state := <Running>; currentSpeed := currentEb.Enter());
 						posX := track.endX;
 						posY := track.endY;
 						currentEb.Leave();
 						UpdateStats();
 					);
 					routeTable := tl routeTable;
-					if (routeTable = []) then (
-						currentSpeed := 0;
-						state := <Finished>;
-					);
 					UpdateStats();
 			) else (
 				currentSpeed := 0;
 				state := <WaitingForSignal>;
 				UpdateStats();
 			)
-		) else UpdateStats();
+		) else (currentSpeed := 0;
+					  state := <Finished>;
+					  UpdateStats();)
 	 );
 	 
 	private UpdateStats: () ==> ()
