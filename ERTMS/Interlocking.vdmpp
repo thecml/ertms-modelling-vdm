@@ -39,24 +39,16 @@ operations
 					if(forall tr in set prt & trackTable(tr) = false) then (
 						availableRoutes := {rts | rts in set availableRoutes
 						 & forall ptrs in set {prt} & rts inter ptrs = {}};
-						 return ProceedGranted(respTrs);
+						 return ProceedGranted(availableRoutes, respTrs);
 					)
 					else
-						return ProceedDenied(respTrs)
-			else return ProceedDenied(respTrs)
+						return ProceedDenied(availableRoutes, respTrs)
+			else return ProceedDenied(availableRoutes, respTrs)
 			) else (
-				return ProceedDenied(respTrs)
+				return ProceedDenied(availableRoutes, respTrs)
 			)
 	pre card prt > 0 and card GetTracksInRoutes({prt}) > 0;
-	
-	private ProceedGranted: set of Track ==> ProceedReply
-	ProceedGranted(respTrs) ==
-		return mk_ProceedReply(<PROCEED_GRANTED>, availableRoutes inter {respTrs});
 		
-	private ProceedDenied: set of Track ==> ProceedReply
-	ProceedDenied(respTrs) ==
-		return mk_ProceedReply(<PROCEED_DENIED>, availableRoutes inter {respTrs});
-	
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
 		-- if route is not in routesAvaliable and the tracks are not occupied ,
@@ -105,6 +97,14 @@ operations
 	)
 				
 functions
+	private ProceedGranted: set of Route * set of Track -> ProceedReply
+	ProceedGranted(rts, respTrs) ==
+		mk_ProceedReply(<PROCEED_GRANTED>, rts inter {respTrs});
+		
+	private ProceedDenied: set of Route * set of Track -> ProceedReply
+	ProceedDenied(rts, respTrs) ==
+		mk_ProceedReply(<PROCEED_DENIED>, rts inter {respTrs});
+		
 	public GetTracksInRoute: Route -> set of Track
 	GetTracksInRoute(rt) ==
 		{tr | tr in set rt};

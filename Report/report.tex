@@ -25,8 +25,7 @@
 \address{Course: E18 - Modeling of Critical Systems}
 
 \begin{abstract}
-Modeling of critical systems is an important tool in software engineering, as it allows us to design a system
-from specification and verify its properties in a unambiguous way early in the development process. In this report, we use the object-oriented Vienna Development Method (VDM++) to model, simulate and verify a subset of the specifications for the safety-critical European Rail Traffic Management System (ERTMS) level 2 focusing on those properties of ERTMS that concern interlocking of tracks and safety of the trains. In ERTMS, these features are controlled by the European Train Control System (ETCS) component. With VDM++, we can perform system design analysis and model verification to catch potential faults early before the system is constructed in an implementation language like Java and deployed to a real system. We start by defining requirements and invariants based on the ERTMS/ETCS specification and then use VDM++ to design a formal model followed by model-checking. The abstract implementation of ERTMS detailed in this report provide a simple but fundamental understanding of the signaling system's behavior and how to describe its constraints.
+Modeling of critical systems is an important tool in software engineering, as it allows us to design a system from specification and verify its properties in a unambiguous way early in the development process. In this report, we use the object-oriented Vienna Development Method (VDM++) to model, simulate and verify a subset of the real specifications for the safety-critical European Rail Traffic Management System (ERTMS) standard focusing on those properties of ERTMS that concern interlocking of tracks and safety of the trains. In ERTMS, these features are controlled by the European Train Control System (ETCS) component. With VDM++, we can perform system design analysis and model verification to catch potential faults early before the system is constructed in an implementation language like Java and deployed in a real life context. We start by introducing requirements and invariants based on the ERTMS/ETCS specification and then use VDM++ to design a formal model followed by model-checking. Finally we apply model validation within Overture using VDM++ to verify the correctness of our model and perform a simulation of inputs. The abstract implementation of ERTMS detailed in this report provide a simple but fundamental understanding of the signaling system's behavior and how to describe its constraints.
 \end{abstract}
 
 \begin{keyword}
@@ -39,9 +38,9 @@ ERTMS \sep ETCS \sep VDM++ \sep Formal methods \sep Interlocking \sep Safety
 \label{S:introduction}
 The railway domain was identified as a grand challenge of computing science by (\citet{Challenge}) in 2004 because it is understandable by the general public, provides useful features in terms of transportation and pose many concerns for design and controllability. One part of the challenge is improving the feasibility and capacity of modern railway as the world's population is increasing and rail traffic now moves cross borders.
 
-The European Rail Traffic Management System (ERTMS) is a signaling and control system developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems, as detailed in (\citet{Ghazel2014}). Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the Radio Block Center (RBC). There a three different levels of ERTMS, L1, L2 and L3 detailed by (\citet{Outlook2012}). We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. For a train to enter a new track section, it must requests a movement authority (MA) for that section from the RBC, which will be further explained in section X. ERTMS defines end of authority (EoA) as the point the train is allowed to move to. We consider this aspect as well.
+The European Rail Traffic Management System (ERTMS) is a signaling and control standard developed in the start 2000's to address the interoperability issues with cross-border rail traffic in Europe and lack of capacity with legacy systems, as detailed in (\citet{Ghazel2014}). Currently many European countries have their own national stand-alone signaling and control system implemented by a certain set of rules that differ from each country. ERTMS is designed to replace the national systems to make rail transport more frictionless, improve rail capacity and more attractive to consumers. It consists of two primary parts, the European Train Control and Command System (ETCS) to govern the positions and safety of trains, known as the Interlocking (ITL), and the GSM-R radio communications system to send messages between trains and the RadioBlockCenter (RBC). There a three different levels of ERTMS, L1, L2 and L3 detailed by (\citet{Outlook2012}). We consider L2 in this report. L2 introduces the RBC, a Eurobalise that register train movement and omits any track side signaling equipment. When a train computer wants to enter a new route (a set of tracks), it must requests a movement authority (MA) for that section from the RBC, which will see when we explore the model further. ERTMS defines end of authority (EoA) as the point the train is allowed to move to. We consider this aspect as well.
 
-Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. The train control (EVC) requests movement authorities from the RBC over GSM-R. A typical national rail way will have multiple RBC's for each region. The RBC's communicate with a central interlocking service, that receives the physical location of trains using the Eurobalises, in order to either grant or deny movement authority to a train.
+Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. The train control (EVC) requests movement authorities from the RBC over GSM-R. A typical national railway will have multiple RBC's for each region, where they communicate with a central interlocking service, that receives and tracks the physical location of trains from the Eurobalises in order to either grant or deny movement authority to a train.
 
 \begin{figure}[h]
 	\centering
@@ -52,7 +51,7 @@ Figure \ref{fig:ertmsoverview} shows the essential components of ERTMS level 2. 
 
 \section{Requirements}
 \label{S:requirements}
-The purpose of the model is to design and verify the interlocking properties and operating rules of the ETCS system, a part of ERTMS. With our model we aim to show how VDM++ can we used to create and satisfy a subset of the real requirements of ETCS interlocking, abstracting away most of the physical constraints you would have in a real system and focusing on the control mechanisms you find in the RadioBlockCenter and Interlocking components, described in the introduction. Our model should demonstrate a simulated train that interacts with the control system when traversing a set of tracks, as it would in real life, while simultaneously monitoring and adhering to the safety features of the system. We address the following requirements: \\
+The purpose of the model is to design and verify the interlocking properties and operating rules of the ETCS system, a part of ERTMS. With the model we aim to show how VDM++ can we used to create and satisfy a subset of the real requirements of ETCS interlocking, abstracting away most of the physical constraints you would have in a real system and focusing on the control mechanisms you find in the RadioBlockCenter and Interlocking components, described in the introduction. Our model should demonstrate a simulated train that interacts with the control system when traversing multiple routes with sets of tracks, as it would in real life, while simultaneously monitoring and adhering to the safety features of the system. We address the following requirements: \\
 
 R1: A train shall not enter a track section which is occupied by another train (same track).\\
 R2: A train shall not pass a track boundary without being given a movement authority (MA) to do so.\\
@@ -60,13 +59,13 @@ R3: A train shall respect the maximum permitted speed of its current track.\\
 R4: Two trains cannot have a MA for the same track at the same time.\\
 R5: The system shall not provide an MA for a track that is occupied by a train.\\
 R6: The RBC shall not answer MA's for tracks it is not responsible for.\\
-R7: The eurobalise shall report train movement to the interlocking system.\\
+R7: The Eurobalise shall report train movement to the Interlocking.\\
 
-The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature (\citet{Berger2018}) and (\citet{Ghazel2014}), that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R8}. UML will be used to show some of the logical VDM++ classes and their relationships. From the specification of ERTMS we can define a typical usage scenario for a train that wishes to enter a track. Given a train \textit{T1}, a track TR1 from a set of tracks (i=1,..,n), an \textit{RBC} responsible for tracks \textit{TR\textsubscript{n}}, a eurobalise \textit{Eb} mounted on the track that registers physical movement and a central interlocking service \textit{ITL}.
+The requirements and the behavior of the ETCS control architecture, that we elaborate on in section \ref{S:systemarch}, are inspired from literature (\citet{Berger2018}) and (\citet{Ghazel2014}), that describe, model and verify many of the real functional properties of ERTMS. In this report we choose a portion of these to model and test our requirements \textit{R1-R7}. From the specification of ERTMS one can define a typical usage scenario for a train that wishes to enter a route. Given a train \textit{T1}, a route \textit{Rt} with tracks \textit{Tr\_{1}} from a set of tracks (i=1,..,n), an \textit{RBC} responsible for tracks \textit{TR\textsubscript{n}}, a eurobalise \textit{Eb} mounted on the track that registers physical movement and a central interlocking service \textit{ITL}:
 
 \begin{itemize}[noitemsep]
-	\item \textit{T} wants to start a route \textit{Rt} and enter track \textit{Tr}. \textit{T} requests MA for route \textit{Rt} from RBC.
-	\item RBC contacts the ITL to verify the request.
+	\item Train \textit{T} wants to start a route \textit{Rt} and enter track \textit{Tr}. \textit{T} requests MA for route \textit{Rt} from RBC.
+	\item RBC contacts the ITL to verify the route is available and clear.
 	\item RBC grants MA to train \textit{T} for route \textit{Rt}.
 	\item \textit{T} enters track \textit{Tr}.
 	\item Eb registers movement and informs ITL.
@@ -77,7 +76,7 @@ This functionality will be further explored in the model architecture and design
 \section{Model architecture}
 \label{S:systemarch}
 
-The architecture of the model represents the entire system as entities, that are later defined in VDM++ as classes, that encapsulate functionality related to the individual entity. We consider the purpose of our model, that is to express and simulate several important aspects of ERMTS/ETCS, and use the primary components of such system as our entities. These can seen in figure \ref{fig:ertmscontrolarchitecture} that show a way to model the control architecture of ERTMS based in the real specification set for ERTMS level 2 detailed in (\citet{Berger2018}), but junction control and route guidance has been omitted.
+The architecture of the model represents the entire system as entities, later defined in VDM++ as classes, that encapsulate functionality related to the individual entity. We consider the purpose of our model, that is to express and simulate several important aspects of ERMTS/ETCS, and use the primary components of such system as our entities. These can seen in figure \ref{fig:ertmscontrolarchitecture} that show a way to model the control architecture of ERTMS based on the real specification set for ERTMS level 2 detailed in (\citet{Berger2018}), but junction control and route guidance has been omitted.
 
 \begin{figure}[h]
 	\centering
@@ -86,19 +85,19 @@ The architecture of the model represents the entire system as entities, that are
 	\label{fig:ertmscontrolarchitecture}
 \end{figure}
 
-We shall describe the components in more detail before designing our model. The \textbf{controller} places route requests into the interlocking at certain time \textit{t} intervals. The point is to control the flow of traffic and how many routes can be available concurrently in the rail network, a way to limit congestion. A route is simply a set of tracks. \textbf{Interlocking} receives route requests and stores them in a control table containing available routes. It receives track occupation events from physical units along the track side and uses this information to update the control table with available routes. The \textbf{RadioBlockCenter} receives MA requests from trains, checks route availability and forwards these to the interlocking. RBC's are responsible for multiple tracks, i.e. a block. The \textbf{Train} sends MA requests to the RBC before entering a new track in a route. For each track, a line segment with a geographic starting and terminal point, the train must request and obtain a MA. This is also stated in the requirements. Each track has a certain speed limit, and the train must never exceed this. The \textbf{Eurobalise} registers physical movement when trains enter and leave tracks and conveys this to the interlocking. 
+We shall describe the components in more detail before designing the model. The \textbf{Controller} places route requests into the interlocking at certain time \textit{t} interval to control the flow of traffic and how many routes can be available concurrently in the rail network, a way to limit congestion. A route is simply a set of tracks. \textbf{Interlocking} receives route requests and stores them in a control table containing available routes. It receives track occupation events from physical units along the track side known as eurobalises and uses this information to update the control table with available routes. The \textbf{RadioBlockCenter} receives MA requests from trains and forwards these to the interlocking. RBC's are responsible for multiple tracks, i.e. a block. The \textbf{Train} sends MA requests to the RBC before entering a new track in a route. For each route with one or many tracks (a line segment with a geographic starting and terminal point) the train must request and obtain a MA. This is also stated in the requirements. Each track has a certain speed limit, and the train must never exceed this. The \textbf{Eurobalise} registers physical movement when trains enter and leave tracks and reports this to the interlocking. 
 
 In a real scenario, the eurobalise sends track and speed information to passing trains and the ETCS would monitor this and eventually slow down trains, if they go too fast. We do not consider this part in our model. The ETCS architecture in figure \ref{fig:ertmscontrolarchitecture}, requirements and functionality will be used to create VDM++ classes, functions and invariants in the next section.
 
 \section{Model design}
 
-In this section we will review the model in VDM++ in a top-down approach and elaborate on interesting design choices made. The entities in our architecture are now VDM classes, types represent information state objects, and events and requests are described with operations and functions. A full class diagram can be found in Appendix A.
+In this section we will review the VDM++ model in a top-down approach and elaborate on interesting design choices made. The entities in our architecture are now VDM++ classes, types represent information state objects, and events and requests are described with operations and functions. A full UML class diagram can be found in Appendix D.
 
 \subsection{Controller}
 
-The controller controls at what rate new routes are placed into the interlocking. In a real setting, it regulates the flow of trains and adds a detail of security, as new routes that become available (free of trains) are not immediately placed into the interlocking. Listing \ref{lst:controller} shows the how we do this in our VDM model. Operation SendRouteRequest() is executed sequentially, picks a random route from a sequence of routes and requests the route at the interlocking.
+The controller controls at what rate new routes are placed into the interlocking. In a real setting, it regulates the flow of trains and adds a detail of security, as new routes that become available (free of trains) are not immediately placed into the interlocking. Before ERTMS, this track state was represented by a signal with a flashing or constant yellow light. Listing \ref{lst:controller} shows the VDM++ class. Operation SendRouteRequest() is executed sequentially, as it picks a random route from a sequence of routes and requests the route at the interlocking.
 
-\begin{vdmsl}[label=lst:controller,caption=Definitions and SendRouteReques() operation in the Controller.]
+\begin{vdmsl}[label=lst:controller,caption=State variables and the SendRouteRequest() operation in the Controller.]
 	class Controller
 	
 	instance variables
@@ -121,7 +120,7 @@ The controller controls at what rate new routes are placed into the interlocking
 
 \subsection{Interlocking}
 
-The interlocking has three primary operations with core functionality, defined as such because they change the state of the class. First operation accepts new route requests from the controller for routes $R_{n}$ and place it into its locking table (available routes) if it not already occupied. We choose a set for these, as they are finite, the order is not important and duplicate elements should not be significant. Sets also support some useful operators which we will see. The second operation receive and store information from corresponding Eurobalises (track trackers) about the physical movement of trains. We choose a mapping for these, since they define lookup operators that allow us to assert if a particular track is occupied or not. The $trackTable$ maps tracks with a given coordinate to either a true or false value, if the track is occupied or not. Third operation respond to the RadionBlockCenter requesting a MA (Movement Authority) on the behalf of trains. We start be defining the implemented types and instance variables (listing \ref{lst:itl1}).
+The interlocking has three main operations defining core functionality, made as such because they change the state of the class. First operation accepts new route requests from the controller for routes $R_{n}$ and place it into its set of available routes, $availableRoutes$, if tracks are not already occupied. We choose a set for these, as they are finite, the order is not important and duplicate elements should not be significant. Sets also support some useful operators shown later. The second operation receive and store information from corresponding eurobalises (track trackers) about the physical movement of trains in a map. We choose a map for these, as they define lookup operators that allow us to assert if a particular track is occupied or not. The $trackTable$ maps tracks with a given coordinate to either a true or false value, if the track is occupied or not. Third operation respond to the RadionBlockCenter requesting a MA (Movement Authority) on the behalf of trains. We start be defining the implemented types and instance variables shown in listing \ref{lst:itl1}.
 
 Notice the atomic use in the constructor to defer invariant assertion after the assignment.
 
@@ -158,7 +157,7 @@ Notice the atomic use in the constructor to defer invariant assertion after the 
 	end Interlocking
 \end{vdmsl}
 
-The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes sure that occupied tracks in $trackTable$ and set of available routes are mutually exclusive and $InvNoDuplicateTrack$ that makes sure no duplicate track (with the same start and end coordinates) exists in the set of available routes (listing \ref{lst:itl2})
+The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes sure occupied tracks in $trackTable$ and the set of available routes $availableRoutes$ are mutually exclusive, and $InvNoDuplicateTrack$ that makes sure no duplicate track (with the same start and end coordinates) exists in the set of available routes (listing \ref{lst:itl2})
 
 \begin{vdmsl}[label=lst:itl2,caption=Two invariants that verify the integrity of the available routes and checks a route for duplicate track.]
 	public InvNoTrackAvailableAndOccupied: map Track to bool
@@ -175,7 +174,7 @@ The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes
 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;	
 \end{vdmsl}
 
-Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and tracks are not occupied, we add it to $availableRoutes$ and clear its track.
+Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and its tracks are not occupied, we add it to $availableRoutes$ and clear the track.
 
 \begin{vdmsl}[label=lst:itl3,caption=Definition of the SendRouteReques() operation.]
 	public RequestRoute: (Route) ==> ()
@@ -191,7 +190,7 @@ Next is the $RequestRoute()$ operation called by the controller (listing \ref{ls
 	pre card GetTracksInRoute(rt) > 0;	
 \end{vdmsl}
 
-$GetTracksInRoute()$ and $GetTracksInRoutes()$ (listing \ref{lst:itl4} are utility functions that return the tracks in a route or routes using set comprehensions.
+$GetTracksInRoute()$ and $GetTracksInRoutes()$ (listing \ref{lst:itl4}) are utility functions that return the tracks in a route or routes using set comprehensions.
 
 \begin{vdmsl}[label=lst:itl4,caption=Definition of two functions that return the tracks.]
 	public GetTracksInRoute: Route -> set of Track
@@ -219,7 +218,7 @@ The next operation $SetTrackState()$ is called by the Eurobalise when a train en
 	pre tr in set dom trackTable;
 \end{vdmsl}
 
-Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (listing \ref{lst:itl6}). It returns a proceed granted if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ neither are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$. Operations $ProceedGranted()$ and $ProceedDenied()$ return the available routes that intersects with the responsible tracks of the RadioBlockCenter.
+Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (listing \ref{lst:itl6}). It returns a proceed granted if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ none are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$. Functions $ProceedGranted()$ and $ProceedDenied()$ return the available routes that intersects with the responsible tracks of the RadioBlockCenter.
 
 \begin{vdmsl}[label=lst:itl6,caption=Definition of the RequestToProceed() operation.]
 	public RequestToProceed: Route * set of Track ==> ProceedReply
@@ -334,11 +333,15 @@ The Train is the driver of the system and each created has a route table with ro
 	if (len routeTable > 0
 		and state = <Running> or state = <WaitingForSignal>) then (
 		dcl currentRoute : Interlocking`Route := hd routeTable;
-		if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
+		if(rbc.RequestMovementAuthority(currentRoute)
+		 = <MovementAuthorityGranted>)
 		then (
 			for track in GetTracksInRoute(currentRoute) do (
 				dcl currentEb : Eurobalise := transponders(track);
-				atomic (state := <Running>; currentSpeed := currentEb.Enter());
+				atomic (
+					state := <Running>;
+					currentSpeed := currentEb.Enter()
+				);
 				posX := track.endX;
 				posY := track.endY;
 				currentEb.Leave();
@@ -417,46 +420,9 @@ The nature of a real-life ERTMS application is obviously real time, concurrent a
 
 \section{Conclusion}
 
-In this report we have argued why ERTMS and ETCS are indeed needed to cope with interoperability issues presented in current nation-based railway technologies, noted in (\citet{Commission2018}) and why it is suitable for formal modeling, then described the architecture behind it and presented a model that all-though simplified, demonstrate the primary entities and interactions in the VDM++ language using Overture. VDM++ constructs were used where appropriate, as we used a set to represent the list of available routes at the Interlocking component, a map to model the physical track table and used a sequence to hold the routes each train has to traverse. We used three techniques Overture offers to validate the correctness of our model and ran a simulation to show the mutual exclusivity of routes and tracks that ETCS impose.
-
-%% The Appendices part is started with the command \appendix;
-%% appendix sections are then done as normal sections
-%% \appendix
-
-%% \section{}
-%% \label{}
-
-%% References
-%%
-%% Following citation commands can be used in the body text:
-%% Usage of \cite is as follows:
-%%   \cite{key}          ==>>  [#]
-%%   \cite[chap. 2]{key} ==>>  [#, chap. 2]
-%%   \citet{key}         ==>>  Author [#]
-
-%% References with bibTeX database:
+In this report we have argued why a standardized system like ERTMS and ETCS are indeed needed to cope with interoperability issues presented in current nation-based railway technologies, noted in (\citet{Commission2018}) and why it is suitable for formal modeling. We proceeded to described the architecture behind it and presented a model that all-though simplified, demonstrate the primary entities and interactions in the VDM++ language using Overture. VDM++ constructs were used where appropriate, as we used a set to represent the list of available routes at the Interlocking component, a map to model the physical track table and used a sequence to hold the routes each train has to traverse. We used three techniques Overture offers to validate the correctness of our model and ran a simulation to show the mutual exclusivity of routes and tracks that ETCS impose.
 
 \bibliographystyle{plainnat}
 \bibliography{literature}
 
-%% Authors are advised to submit their bibtex database files. They are
-%% requested to list a bibtex style file in the manuscript if they do
-%% not want to use model1-num-names.bst.
-
-%% References without bibTeX database:
-
-% \begin{thebibliography}{00}
-
-%% \bibitem must have the following form:
-%%   \bibitem{key}...
-%%
-
-% \bibitem{}
-
-% \end{thebibliography}
-
-
 \end{document}
-
-%%
-%% End of file `elsarticle-template-1-num.tex'.
