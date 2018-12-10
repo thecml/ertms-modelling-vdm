@@ -6,6 +6,8 @@
 \usepackage{enumitem}
 \usepackage{vdmlisting}
 \usepackage{float}
+\usepackage{pdfpages}
+\usepackage{fancyvrb}
 
 \begin{document}
 
@@ -91,7 +93,7 @@ In a real scenario, the eurobalise sends track and speed information to passing 
 
 \section{Model design}
 
-In this section we will review the VDM++ model in a top-down approach and elaborate on interesting design choices made. The entities in our architecture are now VDM++ classes, types represent information state objects, and events and requests are described with operations and functions. A full UML class diagram can be found in Appendix D.
+In this section we will review the VDM++ model in a top-down approach and elaborate on interesting design choices made. The entities in our architecture are now VDM++ classes, types represent information state objects, and events and requests are described with operations and functions. A full UML class diagram can be found in Appendix C.
 
 \subsection{Controller}
 
@@ -240,7 +242,7 @@ Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (list
 
 \subsection{RadioBlockCenter}
 
-The RadioBlockCenter receives MA requests from trains and forwards these to the interlocking, basically acting as a gateway but with its own state of available routes and responsible tracks initialized in the constructor. Similar to the interlocking, we use sets here as the order is unimportant and duplicate should not be significant for our model. Also at no point do we need to select certain elements, but operators like membership, intersection and union are important to us. Listing \ref{lst:rbc1} shows the declarations for the RadioBlockCenter.
+The RadioBlockCenter receives MA requests from trains and forwards these to the interlocking, basically acting as a gateway but with its own state of available routes and responsible tracks initialized in the constructor. Similar to the interlocking, we use sets here as the order is unimportant and duplicate elements should not count in the model. Also at no point do we need to select certain elements, but operators like membership, intersection and union are important to us. Listing \ref{lst:rbc1} shows the declarations for the RadioBlockCenter.
 
 \begin{vdmsl}[label=lst:rbc1,caption=Definition of class state and constructor for RadioBlockCenter.]
 	class RadioBlockCenter
@@ -286,7 +288,7 @@ To receive the MA's, we define a operation $RequestMovementAuthority()$ that tak
 
 \subsection{Eurobalise}
 
-The Eurobalise is a piece of track side equipment that registers the physical movement of trains, as described previously. The class is straightforward, as it simply defines some track it is situated at and the global interlocking system (listing \ref{lst:eb1}).
+The Eurobalise is a piece of track side equipment that registers the physical movement of trains, as described previously. The class is straightforward, as it simply defines some track it is situated at and the global interlocking system in listing \ref{lst:eb1}.
 
 \begin{vdmsl}[label=lst:eb1,caption={Types, variables, constructor for the Eurobalise.}]
 	class Eurobalise
@@ -324,7 +326,7 @@ The two operations $Enter()$ and $Leave()$ invoke the interlocking for a track $
 
 \subsection{Train}
 
-The Train is the driver of the system and each created has a route table with routes it must traverse. When starting, it invokes the RadioBlockCenter by sending a MA request for the first route $Rt$ in its route table, and if the MA is granted, it will enter the first track in the route by calling the track respective Eurobalise from the $transponders$ map, set its current speed to match the track, move onto the end and leave it by calling the Eurobalise. The train will halt should it not obtain a MA for any $Rt$. In our simulation we follow the movement of trains by printing a log of their X and Y positional coordinates. The train has a lot of state declarations, so for clarity, here we simply show the sequential $Drive()$ function in listing \ref{lst:train1}. The full code for Train is found in Appendix A.
+The Train is the driver of our model and has a route sequence with routes it must traverse. When starting, it invokes the RadioBlockCenter by sending a MA request for the first route $Rt$ in its route sequence, and if the MA is granted, it will enter the first track $Tr$ in route $Rt$ calling the track's respective Eurobalise from the $transponders$ map, set its current speed to match the track, move onto the end and ultimately leave it by calling the Eurobalise. The train will halt should it not obtain a MA for any $Rt$. In our simulation we follow the movement of trains by printing a log of their X and Y positional coordinates as simulation progresses. The train has a lot of state declarations, so for clarity, here we simply show the sequential $Drive()$ operation in listing \ref{lst:train1}. The full code for Train is found in Appendix A.
 
 \begin{vdmsl}[label=lst:train1,caption={Drive() moves the train along a sequence of routes, requests MA for each route and obeys track speed limits.}]
 	private Drive: () ==> ()
@@ -360,13 +362,13 @@ The Train is the driver of the system and each created has a route table with ro
 
 \section{Validation}
 
-This section describes some of the validation techniques used to ensure correctness of the model. Unit testing was used to test functional properties of classes, combinatorial testing to check logical assertions of the model and lastly proof obligations to find points of interest in the model where state is changed and that state has to guarantee some invariant or logical expression.
+This section describes some of the validation techniques used to ensure correctness of the model. Unit testing was used to test functional properties of classes, combinatorial testing to check logical assertions of the model and lastly proof obligations to find points of interest in the model where state is changed and where these has to guarantee some invariant or logical expression holds.
 
 \subsection{Unit testing}
 A typical unit test verifies the functional properties of a class's functions and operations, often conducted in isolation with stubs for any external dependencies. A unit test invokes the unit under test (a class) with some input and evaluates whether the output satisfies what was expected. VDM++ offers unit testing options with VDMUnit, which we have used to test the four control classes in our system and shall explore in a bit. Additionally VDM++ provides a framework for combinatorial testing used to verify pre, post and invariant conditions in our classes. Both methodologies have been applied in this project and the complete set of sets can be found in the attached code, see Appendix A.
 
 \subsection{Combinatorial testing}
-The combinatorial tests are defined in the classes and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. The results are omitted here, but can be viewed in Appendix B. All tests can be seen in Appendix A.
+The combinatorial tests are defined in the classes as traces and can be seen to the full extend in Appendix A. With these tests we verify preconditions, postconditions and state invariants. As opposed to the unit tests, that fail if any of these are violated, the combinatorial tests print inconclusive in such cases and succeeds no matter the assertion was true or false. Looking at the interlocking, listing \ref{lst:itlcomb1} defines four combinatorial tests that check our invariants. All tests can be seen in Appendix A.
 
 \begin{vdmsl}[label=lst:itlcomb1,caption={Four combinatorial tests that exercise our invariant functions in the Interlocking class.}]
 	T1: let trmap in set
@@ -405,7 +407,7 @@ The first obligation tells us that the state invariant imposed $availableRoutes$
 
 \section{Simulation}
 
-To simulate trains interacting with the control system, we create a $World$ class with two trains running different tracks, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a function $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure \ref{fig:testtrack} shows the track terrain with colors indicating routes for the trains. Both must traverse the line indicated by their color in order to finish. The ERTMS icons show boundaries between tracks. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix C.
+To simulate trains interacting with the control system, we create a $World$ class with two trains running different routes, but sharing a mutual one over a bridge, which they cannot pass at the same time. The World class creates objects for all parts of the environment needed and performs a sequential looping, where we advance the trains and the controller by calling a operation $Step()$. Initially the trains do not have a route set, so we construct our routes based on tracks and use the VDMIO library to print log reports of train movement to the console. Figure \ref{fig:testtrack} shows the track terrain with colors indicating routes for the trains. Both must traverse the line indicated by their color in order to finish. The ERTMS icons show boundaries between tracks. The $World$ class is detailed in Appendix A. The output of the simulation can be viewed in Appendix B.
 
 \begin{figure}[h]
 	\centering
@@ -424,5 +426,15 @@ In this report we have argued why a standardized system like ERTMS and ETCS are 
 
 \bibliographystyle{plainnat}
 \bibliography{literature}
+
+\appendix
+\section*{Appendix A}
+\includepdf[pages=-]{ERTMS.pdf}
+
+\section*{Appendix B}
+See attached file SimulationResults.txt.
+
+\section*{Appendix C}
+
 
 \end{document}

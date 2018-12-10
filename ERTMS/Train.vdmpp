@@ -60,9 +60,9 @@ operations
 	private UpdateStats: () ==> ()
 	UpdateStats() ==
 	 (
-	 		trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
-	 		if(len trainLog > 3) then
+	 	 	if(len trainLog > 3) then
 	 			trainLog := tl trainLog;
+	 		trainLog := trainLog ^ [mk_TrainLogEntry(id, state, posX, posY)];
 	 );
 	 	
 	public AddRoute: Interlocking`Route ==> ()

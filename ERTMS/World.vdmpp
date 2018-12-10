@@ -67,7 +67,7 @@ operations
     InitialiseSystem() ==
     (
     	for route in timeTable1 do (trains(1).AddRoute(route); trains(1).Start()); 
-        for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
+      for route in timeTable2 do (trains(2).AddRoute(route); trains(2).Start());
     );
             
     public Run: nat ==> ()
