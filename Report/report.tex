@@ -13,7 +13,7 @@
 
 \begin{frontmatter}
 
-\title{Modeling and simulating ERTMS/ETCS using VDM++}
+\title{Modeling ERTMS/ETCS using VDM++}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -140,7 +140,6 @@ Notice the atomic use in the constructor to defer invariant assertion after the 
 					description : seq of char
 					maxSpeed : nat;
 	public Route = set of Track;
-	
 	instance variables
 	private trackTable : map Track to bool;
 	private availableRoutes : set of Route;
@@ -155,19 +154,18 @@ Notice the atomic use in the constructor to defer invariant assertion after the 
 		trackTable := { tr |-> false |
 			 tr in set GetTracksInRoutes(rts)};
 	);
-	...
 	end Interlocking
 \end{vdmsl}
 
 The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes sure occupied tracks in $trackTable$ and the set of available routes $availableRoutes$ are mutually exclusive, and $InvNoDuplicateTrack$ that makes sure no duplicate track (with the same start and end coordinates) exists in the set of available routes (listing \ref{lst:itl2})
 
-\begin{vdmsl}[label=lst:itl2,caption=Two invariants that verify the integrity of the available routes and checks a route for duplicate track.]
+\begin{vdmsl}[label=lst:itl2,caption=Two invariants that check the integrity of available routes and checks for duplicates.]
 	public InvNoTrackAvailableAndOccupied: map Track to bool
 	 * set of Route -> bool
 	InvNoTrackAvailableAndOccupied(trmap, rts) ==
 	forall rt in set rts & forall tr in set rt
 		& tr not in set dom trmap or trmap(tr) = false;
-	
+		
 	public InvNoDuplicateTrack: set of Route -> bool
 	InvNoDuplicateTrack(srt) ==
 	forall rt1 in set srt &
@@ -435,6 +433,6 @@ In this report we have argued why a standardized system like ERTMS and ETCS are 
 See attached file SimulationResults.txt.
 
 \section*{Appendix C}
-
+\includegraphics[angle=90,scale=0.35]{ERTMSModel.png}
 
 \end{document}
