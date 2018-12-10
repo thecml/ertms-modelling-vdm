@@ -111,8 +111,9 @@ The controller controls at what rate new routes are placed into the interlocking
 	
 	private SendRouteRequest:() ==> ()
 	SendRouteRequest() ==
-	(dcl rn : nat := MATH`rand(len routes)+1;
-		itl.RequestRoute(routes(rn));
+	if(len routes > 0) then
+		(dcl rn : nat := MATH`rand(len routes)+1;
+			itl.RequestRoute(routes(rn));
 	);
 	...
 	end Controller
@@ -132,11 +133,11 @@ Notice the atomic use in the constructor to defer invariant assertion after the 
 	public ProceedReply :: message : Order
 	routesAvaliable : set of Route;						 
 	public Track :: startX : nat
-	startY : nat
-	endX : nat
-	endY : nat
-	description : seq of char
-	maxSpeed : nat;
+					startY : nat
+					endX : nat
+					endY : nat
+					description : seq of char
+					maxSpeed : nat;
 	public Route = set of Track;
 	
 	instance variables
@@ -174,12 +175,11 @@ The interlocking has two invariants, $InvNoTrackAvailableAndOccupied$ that makes
 		or tr1.startY <> tr2.startY or tr1.endY <> tr2.endY;	
 \end{vdmsl}
 
-Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and tracks are not occupied, we add it to $availableRoutes$ and clear its track. $GetTracksInRoutes()$ is a function that returns the tracks in a route.
+Next is the $RequestRoute()$ operation called by the controller (listing \ref{lst:itl3}). If the route $rt$ is not in available routes and tracks are not occupied, we add it to $availableRoutes$ and clear its track.
 
 \begin{vdmsl}[label=lst:itl3,caption=Definition of the SendRouteReques() operation.]
 	public RequestRoute: (Route) ==> ()
 	RequestRoute(rt) ==
-	(
 	if (rt not in set availableRoutes and
 		forall tr in set rt & tr not in set dom trackTable
 		 or trackTable(tr) = false)
@@ -188,24 +188,40 @@ Next is the $RequestRoute()$ operation called by the controller (listing \ref{ls
 			trackTable := trackTable ++ { tr |-> false |
 		 				  tr in set GetTracksInRoutes({rt})};	
 		 ) else skip;
-	)	
+	pre card GetTracksInRoute(rt) > 0;	
 \end{vdmsl}
 
-The next operation $SetTrackState()$ is called by the Eurobalise when trains enter a new track $tr$ or leaves a track. This is passed as an argument by the Eurobalise. We set the track as occupied on enter and clears it on leave in the $trackTable$ (listing \ref{lst:itl4}). We set a precondition that the track must be known to the interlocking.
+$GetTracksInRoute()$ and $GetTracksInRoutes()$ (listing \ref{lst:itl4} are utility functions that return the tracks in a route or routes using set comprehensions.
 
-\begin{vdmsl}[label=lst:itl4,caption=Definition of the SendRouteReques() operation.]
+\begin{vdmsl}[label=lst:itl4,caption=Definition of two functions that return the tracks.]
+	public GetTracksInRoute: Route -> set of Track
+	GetTracksInRoute(rt) ==
+		{tr | tr in set rt};
+
+	public GetTracksInRoutes: set of Route -> set of Track
+	GetTracksInRoutes(rts) ==
+		dunion {tr | tr in set {rt | rt in set rts}};
+\end{vdmsl}
+
+The next operation $SetTrackState()$ is called by the Eurobalise when a train enters a new track $tr$ or leaves a track. This is passed as an argument by the Eurobalise. We set the track as occupied on enter and remove the routes that intersects with the occupied track from $availableRoutes$. On leave, the track is cleared in the $trackTable$ (listing \ref{lst:itl5}). A precondition states that the track must be known in the track table.
+
+\begin{vdmsl}[label=lst:itl5,caption=Definition of the SetTrackState() operation.]
 	public SetTrackState: Track * Eurobalise`TrainState ==> ()
 	SetTrackState(tr, sta) ==
-	if(sta = <TRAIN_ENTER>) then
-		trackTable := trackTable ++ {tr |-> true}
-	else if (sta = <TRAIN_LEAVE>) then
+	if(sta = <TRAIN_ENTER>) then (
+		atomic (
+		trackTable := trackTable ++ {tr |-> true};
+		availableRoutes := {rts | rts in set availableRoutes
+			& rts inter {tr} = {}};
+		);
+	) else if (sta = <TRAIN_LEAVE>) then
 		trackTable := trackTable ++ {tr |-> false}
-	pre tr in set dom trackTable;	
+	pre tr in set dom trackTable;
 \end{vdmsl}
 
-Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (listing \ref{lst:itl5}). It returns a proceed granted if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ neither are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$.
+Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (listing \ref{lst:itl6}). It returns a proceed granted if the route $ptr$ is in $availableRoutes$ and for all tracks in route $ptr$ neither are in the $trackTable$ as occupied. Before a proceed is granted, it removes the route $prt$ from the list of available routes as well all other routes that may contain the same track as $ptr$. Operations $ProceedGranted()$ and $ProceedDenied()$ return the available routes that intersects with the responsible tracks of the RadioBlockCenter.
 
-\begin{vdmsl}[label=lst:itl5,caption=Definition of the SendRouteReques() operation.]
+\begin{vdmsl}[label=lst:itl6,caption=Definition of the RequestToProceed() operation.]
 	public RequestToProceed: Route * set of Track ==> ProceedReply
 	RequestToProceed(prt, respTrs) ==
 	if (card availableRoutes > 0) then (
@@ -220,7 +236,7 @@ Finally the $RequestToProceed()$ operation called by the RadionBlockCenter (list
 			else return ProceedDenied(respTrs)
 		else return ProceedDenied(respTrs)
 	) else ( return ProceedDenied(respTrs) )
-	pre card prt > 0;
+	pre card prt > 0 and card GetTracksInRoutes({prt}) > 0;
 \end{vdmsl}
 
 \subsection{RadioBlockCenter}
@@ -266,7 +282,7 @@ To receive the MA's, we define a operation $RequestMovementAuthority()$ that tak
 				return <MovementAuthorityDenied>;
 			)
 		) else return <MovementAuthorityDenied>;
-	);
+	) pre card Interlocking`GetTracksInRoute(rt) > 0;
 \end{vdmsl}
 
 \subsection{Eurobalise}
@@ -274,25 +290,25 @@ To receive the MA's, we define a operation $RequestMovementAuthority()$ that tak
 The Eurobalise is a piece of track side equipment that registers the physical movement of trains, as described previously. The class is straightforward, as it simply defines some track it is situated at and the global interlocking system (listing \ref{lst:eb1}).
 
 \begin{vdmsl}[label=lst:eb1,caption={Types, variables, constructor for the Eurobalise.}]
-class Eurobalise
-types
-public TrainState = <TRAIN_ENTER> | <TRAIN_LEAVE>;
+	class Eurobalise
+	types
+	public TrainState = <TRAIN_ENTER> | <TRAIN_LEAVE>;
 
-instance variables
-private itl : Interlocking;
-private track: Interlocking`Track;
-
-public Eurobalise : Interlocking * Interlocking`Track
- ==> Eurobalise
-Eurobalise(pitl, tr) ==
-(
-itl := pitl;
-track := tr;
-);
-end Eurobalise			
+	instance variables
+	private itl : Interlocking;
+	private track: Interlocking`Track;
+	
+	public Eurobalise : Interlocking * Interlocking`Track
+ 	==> Eurobalise
+	Eurobalise(pitl, tr) ==
+	(
+		itl := pitl;
+		track := tr;
+	);
+	end Eurobalise			
 \end{vdmsl}
 
-The two operations $Enter()$ and $Leave()$ invokes the interlocking for a track $track$ when a train either enters or leaves it (listing \ref{lst:eb2}.
+The two operations $Enter()$ and $Leave()$ invoke the interlocking for a track $track$ when a train either enters or leaves it (listing \ref{lst:eb2}. $Enter()$ returns the speed limit of the track to the train.
 
 \begin{vdmsl}[label=lst:eb2,caption={The two operations that trains call to register their movement.}]
 	public Enter: () ==> nat1
@@ -309,36 +325,33 @@ The two operations $Enter()$ and $Leave()$ invokes the interlocking for a track 
 
 \subsection{Train}
 
-The Train is the driver of the system and each created has a route table with one to many routes that it must traverse. When starting, it invokes the RadioBlockCenter by sending a MA request for the first route $Rt$ in its route table, and if the MA is granted, it will enter the first track in the route by calling the Eurobalise, set its current speed to match the track, move onto the end and leave it by calling the Eurobalise. The train will halt should it not obtain a MA for any $Rt$. In our simulation we follow the movement of trains by printing a log of their X and Y positional coordinates. The train has a lot of state declarations, so for clarity, we show just the sequential $Drive()$ function in listing \ref{lst:train1}. The full code for Train is found in Appendix A.
+The Train is the driver of the system and each created has a route table with routes it must traverse. When starting, it invokes the RadioBlockCenter by sending a MA request for the first route $Rt$ in its route table, and if the MA is granted, it will enter the first track in the route by calling the track respective Eurobalise from the $transponders$ map, set its current speed to match the track, move onto the end and leave it by calling the Eurobalise. The train will halt should it not obtain a MA for any $Rt$. In our simulation we follow the movement of trains by printing a log of their X and Y positional coordinates. The train has a lot of state declarations, so for clarity, here we simply show the sequential $Drive()$ function in listing \ref{lst:train1}. The full code for Train is found in Appendix A.
 
 \begin{vdmsl}[label=lst:train1,caption={Drive() moves the train along a sequence of routes, requests MA for each route and obeys track speed limits.}]
 	private Drive: () ==> ()
 	Drive() ==
 	(
-	if (state = <Running> or state = <WaitingForSignal>
-		and len routeTable > 0) then (
-			dcl currentRoute : Interlocking`Route := hd routeTable;
-			
-			if(rbc.RequestMA(currentRoute) = <MAGranted>)
-			then (
-				state := <Running>;
-				for track in GetTracksInRoute(currentRoute) do (
-					dcl currentEb : Eurobalise := transponders(track);
-					currentSpeed := currentEb.Enter();
-					posX := track.endX;
-					posY := track.endY;
-					currentEb.Leave();
+	if (len routeTable > 0
+		and state = <Running> or state = <WaitingForSignal>) then (
+		dcl currentRoute : Interlocking`Route := hd routeTable;
+		if(rbc.RequestMovementAuthority(currentRoute) = <MovementAuthorityGranted>)
+		then (
+			for track in GetTracksInRoute(currentRoute) do (
+				dcl currentEb : Eurobalise := transponders(track);
+				atomic (state := <Running>; currentSpeed := currentEb.Enter());
+				posX := track.endX;
+				posY := track.endY;
+				currentEb.Leave();
 				);
 			routeTable := tl routeTable;
-			if (routeTable = []) then (
-				currentSpeed := 0;
-				state := <Finished>;
-			);
 		) else (
-		currentSpeed := 0;
-		state := <WaitingForSignal>;
+			currentSpeed := 0;
+			state := <WaitingForSignal>;
+			)
+		) else (
+			currentSpeed := 0;
+			state := <Finished>;
 		)
-	) else skip;
 	);
 \end{vdmsl}
 
